@@ -5,7 +5,7 @@ Dataset with detailed annotated glass depth maps in indoor scenes.
 ## Dataset Structure
 The dataset is organized as follows:
 ```
-dataset_root/
+GlassRecon/
 ├── images/                  # RGB images (PNG)
 ├── intrinsics/              # JSON files with camera intrinsics & depth scale
 ├── masks/                   # Binary masks for glass regions (PNG)
@@ -18,7 +18,7 @@ dataset_root/
 ```
 
 ## Evaluation
-Use `eval.py` to compute metrics (AbsRel, Accuracy) between predicted depth maps and ground truth.
+Use `eval.py` to compute metrics (AbsRel, δ < 1.25) between predicted depth maps and ground truth.
 ```bash
 python eval.py --image-folder IMAGE_PATH \
                --pred-folder PREDICTED_DEPTH_PATH \
