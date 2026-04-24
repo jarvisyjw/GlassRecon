@@ -1,6 +1,5 @@
 # GlassRecon
 Dataset with detailed annotated glass depth maps in indoor scenes.
-🚀 The dataset and related code will be released soon~
 
 ## Dataset Structure
 The dataset is organized as follows:
@@ -14,7 +13,7 @@ GlassRecon/
 └── evaluation_depths/
     ├── depths_npy/          # Filtered depth maps (NPY) – glass regions that could not be completed are masked out
     ├── depths_vis/          # Visualizations (PNG)
-    └── pointclouds/         # 3D point clouds (PLY) - back-projected from `depths_npy` using `intrinsics`
+    └── pointclouds/         # 3D point clouds (PLY) - back-projected from depths_npy using intrinsics
 ```
 
 ## Evaluation
@@ -32,3 +31,4 @@ If the predicted depth maps represent inverse depth, add the `--inverse-depth` f
 ```
 python eval.py ... --inverse-depth
 ```
+
