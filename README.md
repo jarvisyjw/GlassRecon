@@ -14,7 +14,7 @@ GlassRecon/
 └── evaluation_depths/
     ├── depths_npy/          # Filtered depth maps (NPY) – glass regions that could not be completed are masked out
     ├── depths_vis/          # Visualizations (PNG)
-    └── pointclouds/         # 3D point clouds (PLY)
+    └── pointclouds/         # 3D point clouds (PLY) - back-projected from `depths_npy` using `intrinsics`
 ```
 
 ## Evaluation
