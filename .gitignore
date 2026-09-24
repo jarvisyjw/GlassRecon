@@ -1,0 +1,5 @@
+# Local paper sources (LaTeX, figures, build artifacts) — not part of the published site.
+assets/
+
+# macOS
+.DS_Store
