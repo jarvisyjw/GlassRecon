@@ -1,0 +1,78 @@
+{
+  "fr1_desk2": {
+    "fused": 488,
+    "heldout": 122,
+    "excluded_no_pose": 10,
+    "associated": 620,
+    "identical_selections_and_trajectories": true,
+    "prediction_cache_contains_only_fused_frames": true,
+    "fixed_lag_and_boundary_verified": true,
+    "rejected_windows": 0,
+    "mean_correspondences_per_window": 37770.99180327869,
+    "intrinsics": {
+      "width": 640,
+      "height": 480,
+      "fx": 525.0,
+      "fy": 525.0,
+      "cx": 319.5,
+      "cy": 239.5
+    }
+  },
+  "fr1_plant": {
+    "fused": 895,
+    "heldout": 225,
+    "excluded_no_pose": 6,
+    "associated": 1126,
+    "identical_selections_and_trajectories": true,
+    "prediction_cache_contains_only_fused_frames": true,
+    "fixed_lag_and_boundary_verified": true,
+    "rejected_windows": 4,
+    "mean_correspondences_per_window": 40694.454748603355,
+    "intrinsics": {
+      "width": 640,
+      "height": 480,
+      "fx": 525.0,
+      "fy": 525.0,
+      "cx": 319.5,
+      "cy": 239.5
+    }
+  },
+  "fr2_desk": {
+    "fused": 1759,
+    "heldout": 434,
+    "excluded_no_pose": 700,
+    "associated": 2893,
+    "identical_selections_and_trajectories": true,
+    "prediction_cache_contains_only_fused_frames": true,
+    "fixed_lag_and_boundary_verified": true,
+    "rejected_windows": 0,
+    "mean_correspondences_per_window": 45857.179647527,
+    "intrinsics": {
+      "width": 640,
+      "height": 480,
+      "fx": 525.0,
+      "fy": 525.0,
+      "cx": 319.5,
+      "cy": 239.5
+    }
+  },
+  "fr3_office": {
+    "fused": 1988,
+    "heldout": 497,
+    "excluded_no_pose": 3,
+    "associated": 2488,
+    "identical_selections_and_trajectories": true,
+    "prediction_cache_contains_only_fused_frames": true,
+    "fixed_lag_and_boundary_verified": true,
+    "rejected_windows": 2,
+    "mean_correspondences_per_window": 51181.375754527166,
+    "intrinsics": {
+      "width": 640,
+      "height": 480,
+      "fx": 535.4,
+      "fy": 539.2,
+      "cx": 320.1,
+      "cy": 247.6
+    }
+  }
+}

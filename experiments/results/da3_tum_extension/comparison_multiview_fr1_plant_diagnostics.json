@@ -1,0 +1,147 @@
+{
+  "sequence": "comparison_multiview_fr1_plant",
+  "examples": [
+    {
+      "frame": "1305032372.930434",
+      "selection": "middle fused frame",
+      "image": "comparison_multiview_fr1_plant_1305032372.930434.png"
+    },
+    {
+      "frame": "1305032358.425953",
+      "selection": "worst per-frame sensor fit (selection does not use clean GT)",
+      "image": "comparison_multiview_fr1_plant_1305032358.425953.png"
+    }
+  ],
+  "temporal": {
+    "1": {
+      "sensor": {
+        "reference_pixels": 4709049,
+        "compared_pixels": 4709049,
+        "coverage": 1.0,
+        "mae_m": 0.015112170999627106,
+        "rmse_m": 0.02290523559201437,
+        "abs_rel": 0.006844344136915489
+      },
+      "regional": {
+        "reference_pixels": 4709049,
+        "compared_pixels": 4709049,
+        "coverage": 1.0,
+        "mae_m": 0.0788229256879153,
+        "rmse_m": 0.21215687849310572,
+        "abs_rel": 0.036276577248288644
+      },
+      "window_anchor": {
+        "reference_pixels": 4709049,
+        "compared_pixels": 4709049,
+        "coverage": 1.0,
+        "mae_m": 0.07814662580809816,
+        "rmse_m": 0.21568679929999682,
+        "abs_rel": 0.03603309416703343
+      },
+      "multiview": {
+        "reference_pixels": 4709049,
+        "compared_pixels": 4709049,
+        "coverage": 1.0,
+        "mae_m": 0.07615158416702328,
+        "rmse_m": 0.21389086685763412,
+        "abs_rel": 0.034568467184183056
+      }
+    },
+    "10": {
+      "sensor": {
+        "reference_pixels": 2383267,
+        "compared_pixels": 2383267,
+        "coverage": 1.0,
+        "mae_m": 0.024688006381710256,
+        "rmse_m": 0.034045543561959185,
+        "abs_rel": 0.012339266145836721
+      },
+      "regional": {
+        "reference_pixels": 2383267,
+        "compared_pixels": 2383267,
+        "coverage": 1.0,
+        "mae_m": 0.10904121507982809,
+        "rmse_m": 0.26853594796094854,
+        "abs_rel": 0.05876019807110375
+      },
+      "window_anchor": {
+        "reference_pixels": 2383267,
+        "compared_pixels": 2383267,
+        "coverage": 1.0,
+        "mae_m": 0.10829846930716917,
+        "rmse_m": 0.26907436115542077,
+        "abs_rel": 0.057789346231812255
+      },
+      "multiview": {
+        "reference_pixels": 2383267,
+        "compared_pixels": 2383267,
+        "coverage": 1.0,
+        "mae_m": 0.10578461178130191,
+        "rmse_m": 0.26507895548666394,
+        "abs_rel": 0.05682143601190097
+      }
+    },
+    "30": {
+      "sensor": {
+        "reference_pixels": 1029590,
+        "compared_pixels": 1029590,
+        "coverage": 1.0,
+        "mae_m": 0.028657550934683088,
+        "rmse_m": 0.038144925900568755,
+        "abs_rel": 0.015169879521719096
+      },
+      "regional": {
+        "reference_pixels": 1029590,
+        "compared_pixels": 1029590,
+        "coverage": 1.0,
+        "mae_m": 0.26603236677061726,
+        "rmse_m": 0.5561575220208601,
+        "abs_rel": 0.13736528852449742
+      },
+      "window_anchor": {
+        "reference_pixels": 1029590,
+        "compared_pixels": 1029590,
+        "coverage": 1.0,
+        "mae_m": 0.2623232983160047,
+        "rmse_m": 0.5578831925951653,
+        "abs_rel": 0.1342663696692289
+      },
+      "multiview": {
+        "reference_pixels": 1029590,
+        "compared_pixels": 1029590,
+        "coverage": 1.0,
+        "mae_m": 0.26389854041534716,
+        "rmse_m": 0.559385505033229,
+        "abs_rel": 0.1352497993562197
+      }
+    }
+  },
+  "target_frame_indices": [
+    30,
+    67,
+    105,
+    142,
+    180,
+    217,
+    255,
+    292,
+    330,
+    368,
+    405,
+    443,
+    480,
+    518,
+    555,
+    593,
+    631,
+    668,
+    706,
+    743,
+    781,
+    818,
+    856,
+    894
+  ],
+  "visibility_mask": "sensor-stable interiors, sensor warp agreement <10cm; favors sensor stability",
+  "temporal_note": "Up to 24 uniformly spaced target frames; common valid support across all methods at each lag; disagreement is not accuracy."
+}

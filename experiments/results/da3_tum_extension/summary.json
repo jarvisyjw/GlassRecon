@@ -1,0 +1,62 @@
+{
+  "scope": "Four preselected additional sequences, single seed, fixed settings",
+  "metric": "Held-out noisy TUM sensor depth consistency on common rendered pixels",
+  "rows": [
+    {
+      "sequence": "fr1_desk2",
+      "sensor_mae_cm": 6.520271007230613,
+      "sensor_coverage_percent": 99.65134441116041,
+      "regional_mae_cm": 9.564768309216495,
+      "regional_coverage_percent": 99.71988939280666,
+      "window_anchor_mae_cm": 9.445741992687898,
+      "window_anchor_coverage_percent": 99.72063072788269,
+      "multiview_mae_cm": 9.333448139478973,
+      "multiview_coverage_percent": 99.71857779997981,
+      "window_vs_regional_percent": -2.4184607745764697
+    },
+    {
+      "sequence": "fr1_plant",
+      "sensor_mae_cm": 11.282216435927815,
+      "sensor_coverage_percent": 99.39996037216132,
+      "regional_mae_cm": 33.14543672364857,
+      "regional_coverage_percent": 97.9281082934016,
+      "window_anchor_mae_cm": 31.445496530277566,
+      "window_anchor_coverage_percent": 97.90990501474496,
+      "multiview_mae_cm": 31.55478748260887,
+      "multiview_coverage_percent": 97.91759354479525,
+      "window_vs_regional_percent": -4.798999193469089
+    },
+    {
+      "sequence": "fr2_desk",
+      "sensor_mae_cm": 20.167666322721992,
+      "sensor_coverage_percent": 99.58820465611497,
+      "regional_mae_cm": 25.172624973178053,
+      "regional_coverage_percent": 99.62430928031603,
+      "window_anchor_mae_cm": 25.037495126405346,
+      "window_anchor_coverage_percent": 99.62721054476076,
+      "multiview_mae_cm": 24.924433151912158,
+      "multiview_coverage_percent": 99.62087074467783,
+      "window_vs_regional_percent": -0.985959237585865
+    },
+    {
+      "sequence": "fr3_office",
+      "sensor_mae_cm": 6.451325962997339,
+      "sensor_coverage_percent": 99.55856150950822,
+      "regional_mae_cm": 17.59404729837237,
+      "regional_coverage_percent": 99.7408499351999,
+      "window_anchor_mae_cm": 17.014184152478943,
+      "window_anchor_coverage_percent": 99.79100882411382,
+      "multiview_mae_cm": 16.799342637340377,
+      "multiview_coverage_percent": 99.79362624731856,
+      "window_vs_regional_percent": -4.516895104093022
+    }
+  ],
+  "fused_total": 5130,
+  "heldout_total": 1278,
+  "sequence_macro_mae_cm": {
+    "sensor": 11.105369932219439,
+    "regional": 21.369219326103874,
+    "window_anchor": 20.73572945046244,
+    "multiview": 20.653002852835094
+  }
+}
