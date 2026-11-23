@@ -369,8 +369,8 @@ footer .sep { opacity: .45; padding: 0 7px; }
   figcaption { font-size: .83rem; }
 }
 </style>
-<link rel="stylesheet" href="assets/reconstruction-explorer.css" />
-<script defer src="assets/reconstruction-explorer.js"></script>
+<link rel="stylesheet" href="assets/reconstruction-explorer.css?v=2" />
+<script defer src="assets/reconstruction-explorer.js?v=2"></script>
 </head>
 <body>
 
@@ -438,7 +438,7 @@ footer .sep { opacity: .45; padding: 0 7px; }
   <section id="reconstructions" aria-labelledby="recon-title">
     <div class="wrap">
       <h2 class="section-title" id="recon-title">ScanNet++ Reconstruction Explorer</h2>
-      <p>Drag the divider or use the arrow keys to compare colored point clouds. Both reconstructions use the same RGB frames, COLMAP poses, and nvblox settings.</p>
+      <p>Drag the divider or use the arrow keys to compare colored point clouds or per-frame depth maps. Both reconstructions use the same RGB frames, COLMAP poses, and nvblox settings.</p>
 
       <div class="recon-toolbar" id="recon-controls" hidden>
         <fieldset>
@@ -454,25 +454,39 @@ footer .sep { opacity: .45; padding: 0 7px; }
           <div class="recon-options">
             <label><input type="radio" name="recon-view" value="full" checked /><span>Full scene</span></label>
             <label><input type="radio" name="recon-view" value="glass" /><span>Glass detail</span></label>
+            <label><input type="radio" name="recon-view" value="depth" /><span>Depth map</span></label>
           </div>
         </fieldset>
       </div>
 
       <div class="recon-layout" id="recon-display">
-        <div class="recon-stage" id="recon-stage">
-          <div class="recon-layer">
-            <img id="recon-ours" width="1200" height="800" loading="lazy"
-              src="pics/reconstructions/c0f5742640/full-ours.webp" alt="Apartment full scene reconstructed by GlassRecon" />
-            <span class="recon-label recon-label-ours">GlassRecon (ours)</span>
+        <div>
+          <div class="recon-stage" id="recon-stage">
+            <div class="recon-layer">
+              <img id="recon-ours" width="1200" height="800" loading="lazy"
+                src="pics/reconstructions/c0f5742640/full-ours.webp" alt="Apartment full scene reconstructed by GlassRecon" />
+              <span class="recon-label recon-label-ours">GlassRecon (ours)</span>
+            </div>
+            <div class="recon-layer recon-raw-layer">
+              <img id="recon-raw" width="1200" height="800" loading="lazy"
+                src="pics/reconstructions/c0f5742640/full-raw.webp" alt="Apartment full scene reconstructed from raw sensor depth" />
+              <span class="recon-label">Raw sensor</span>
+            </div>
+            <div class="recon-divider" aria-hidden="true"><span class="recon-grip"></span></div>
+            <input id="recon-split" class="recon-split" type="range" min="0" max="100" value="50"
+              aria-label="Raw sensor portion of the comparison" aria-valuetext="50% raw sensor, 50% GlassRecon" disabled />
           </div>
-          <div class="recon-layer recon-raw-layer">
-            <img id="recon-raw" width="1200" height="800" loading="lazy"
-              src="pics/reconstructions/c0f5742640/full-raw.webp" alt="Apartment full scene reconstructed from raw sensor depth" />
-            <span class="recon-label">Raw sensor</span>
+          <div class="recon-depth-key" id="recon-depth-key" hidden>
+            <div class="recon-depth-guide">
+              <div class="recon-depth-scale">
+                <span class="recon-depth-ramp" aria-hidden="true"></span>
+                <span>0 m</span><span>3 m</span><span>6+ m</span>
+              </div>
+              <span class="recon-missing-depth">No valid depth</span>
+            </div>
+            <p>Sensor measurement (left) and GlassRecon’s scale-aligned DA3-LARGE prediction (right) for the same RGB frame, before fusion.
+              <span id="recon-depth-heldout" hidden>The office frame was held out of the reconstruction experiment. Its prediction was generated separately for this view.</span></p>
           </div>
-          <div class="recon-divider" aria-hidden="true"><span class="recon-grip"></span></div>
-          <input id="recon-split" class="recon-split" type="range" min="0" max="100" value="50"
-            aria-label="Raw sensor portion of the comparison" aria-valuetext="50% raw sensor, 50% GlassRecon" disabled />
         </div>
         <aside class="recon-readout" aria-label="Selected scene and metrics">
           <div class="recon-scene-heading">
@@ -498,7 +512,7 @@ footer .sep { opacity: .45; padding: 0 7px; }
       </div>
       <p id="recon-status" class="recon-status" role="status"></p>
       <noscript><p>Enable JavaScript to move the divider and choose another scene.</p></noscript>
-      <p class="recon-method">GlassRecon aligns DA3-LARGE depth to sensor measurements and refines it over five frames before fusion.</p>
+      <p class="recon-method" id="recon-method">GlassRecon aligns DA3-LARGE depth to sensor measurements and refines it over five frames before fusion.</p>
 
       <div class="recon-extras">
         <details>

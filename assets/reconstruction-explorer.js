@@ -16,6 +16,7 @@
       fscore: [77.63, 89.25], mae: [5.21, 6.24]
     }
   };
+  const viewNames = { full: "full scene", glass: "glass detail", depth: "depth map" };
   const byId = (id) => document.getElementById(id);
   const controls = byId("recon-controls");
   const display = byId("recon-display");
@@ -56,15 +57,19 @@
     }
     const data = scenes[scene];
     const base = `pics/reconstructions/${scene}/`;
-    const title = data.name + (view === "full" ? " full scene" : " glass detail");
+    const isDepth = view === "depth";
+    const title = data.name + " " + viewNames[view];
+    const depthFrame = data.name + ", RGB frame " + data.frame;
     display.setAttribute("aria-busy", "true");
     status.textContent = `Loading ${title.toLowerCase()}…`;
 
     try {
       // Commit both renders, the reference, and the readout together, even on rapid scene changes.
       const images = await Promise.all([
-        prepareImage("recon-raw", base + view + "-raw.webp", title + " reconstructed from raw sensor depth"),
-        prepareImage("recon-ours", base + view + "-ours.webp", title + " reconstructed by GlassRecon"),
+        prepareImage("recon-raw", base + view + "-raw.webp", isDepth
+          ? "Measured sensor depth for " + depthFrame : title + " reconstructed from raw sensor depth"),
+        prepareImage("recon-ours", base + view + "-ours.webp", isDepth
+          ? "Aligned GlassRecon depth prediction for " + depthFrame : title + " reconstructed by GlassRecon"),
         prepareImage("recon-rgb", base + "rgb.webp", "RGB input looking toward " + data.rgb)
       ]);
       if (serial !== request) return;
@@ -80,6 +85,9 @@
       byId("recon-ours-f").textContent = data.fscore[1].toFixed(2) + "%";
       byId("recon-raw-mae").textContent = data.mae[0].toFixed(2) + " cm";
       byId("recon-ours-mae").textContent = data.mae[1].toFixed(2) + " cm";
+      byId("recon-depth-key").hidden = !isDepth;
+      byId("recon-depth-heldout").hidden = !(isDepth && scene === "8a20d62ac0");
+      byId("recon-method").hidden = isDepth;
       shown = { scene, view };
       status.textContent = "";
     } catch {
