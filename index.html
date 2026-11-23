@@ -369,6 +369,8 @@ footer .sep { opacity: .45; padding: 0 7px; }
   figcaption { font-size: .83rem; }
 }
 </style>
+<link rel="stylesheet" href="assets/reconstruction-explorer.css" />
+<script defer src="assets/reconstruction-explorer.js"></script>
 </head>
 <body>
 
@@ -378,6 +380,7 @@ footer .sep { opacity: .45; padding: 0 7px; }
   <div class="nav-inner">
     <a class="brand" href="#top">Glass<span>Recon</span></a>
     <nav class="nav-links" aria-label="Section navigation">
+      <a href="#reconstructions">Reconstructions</a>
       <a href="#abstract">Abstract</a>
       <a href="#method">Method</a>
       <a href="#dataset">Dataset</a>
@@ -420,6 +423,7 @@ footer .sep { opacity: .45; padding: 0 7px; }
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.7 4.6 18.7 5 18.7 5c.6 1.6.2 2.8.1 3.1.8.9 1.2 1.9 1.2 3.2 0 4.6-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
           Code
         </a>
+        <a class="btn" href="#reconstructions">Explore reconstructions</a>
       </div>
     </div>
 
@@ -430,6 +434,96 @@ footer .sep { opacity: .45; padding: 0 7px; }
       </figcaption>
     </figure>
   </div>
+
+  <section id="reconstructions" aria-labelledby="recon-title">
+    <div class="wrap">
+      <h2 class="section-title" id="recon-title">ScanNet++ Reconstruction Explorer</h2>
+      <p>Drag the divider or use the arrow keys to compare colored point clouds. Both reconstructions use the same RGB frames, COLMAP poses, and nvblox settings.</p>
+
+      <div class="recon-toolbar" id="recon-controls" hidden>
+        <fieldset>
+          <legend>Scene</legend>
+          <div class="recon-options">
+            <label><input type="radio" name="recon-scene" value="c0f5742640" checked /><span>Apartment</span></label>
+            <label><input type="radio" name="recon-scene" value="791a5c253d" /><span>Conference room</span></label>
+            <label><input type="radio" name="recon-scene" value="8a20d62ac0" /><span>Office</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>View</legend>
+          <div class="recon-options">
+            <label><input type="radio" name="recon-view" value="full" checked /><span>Full scene</span></label>
+            <label><input type="radio" name="recon-view" value="glass" /><span>Glass detail</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="recon-layout" id="recon-display">
+        <div class="recon-stage" id="recon-stage">
+          <div class="recon-layer">
+            <img id="recon-ours" width="1200" height="800" loading="lazy"
+              src="pics/reconstructions/c0f5742640/full-ours.webp" alt="Apartment full scene reconstructed by GlassRecon" />
+            <span class="recon-label recon-label-ours">GlassRecon (ours)</span>
+          </div>
+          <div class="recon-layer recon-raw-layer">
+            <img id="recon-raw" width="1200" height="800" loading="lazy"
+              src="pics/reconstructions/c0f5742640/full-raw.webp" alt="Apartment full scene reconstructed from raw sensor depth" />
+            <span class="recon-label">Raw sensor</span>
+          </div>
+          <div class="recon-divider" aria-hidden="true"><span class="recon-grip"></span></div>
+          <input id="recon-split" class="recon-split" type="range" min="0" max="100" value="50"
+            aria-label="Raw sensor portion of the comparison" aria-valuetext="50% raw sensor, 50% GlassRecon" disabled />
+        </div>
+        <aside class="recon-readout" aria-label="Selected scene and metrics">
+          <div class="recon-scene-heading">
+            <h3 id="recon-name">Apartment</h3>
+            <p><code id="recon-id">c0f5742640</code> · <span id="recon-frames">468</span> fused frames</p>
+          </div>
+          <figure class="recon-reference">
+            <img id="recon-rgb" width="480" height="320" loading="lazy"
+              src="pics/reconstructions/c0f5742640/rgb.webp" alt="RGB input looking toward the apartment's corner windows" />
+            <figcaption>Glass detail · RGB frame <span id="recon-frame">003100</span></figcaption>
+          </figure>
+          <div class="recon-scores">
+            <table aria-label="Full-scene reconstruction metrics">
+              <thead><tr><th scope="col">Scene metric</th><th scope="col">Raw</th><th scope="col">Ours</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">F-score @ 5 cm ↑</th><td id="recon-raw-f">40.90%</td><td id="recon-ours-f">68.21%</td></tr>
+                <tr><th scope="row">Held-out MAE ↓</th><td id="recon-raw-mae">8.53 cm</td><td id="recon-ours-mae">8.89 cm</td></tr>
+              </tbody>
+            </table>
+            <a href="https://github.com/jarvisyjw/GlassRecon/blob/main/docs/scannetpp.md">Results for all 11 scenes</a>
+          </div>
+        </aside>
+      </div>
+      <p id="recon-status" class="recon-status" role="status"></p>
+      <noscript><p>Enable JavaScript to move the divider and choose another scene.</p></noscript>
+      <p class="recon-method">GlassRecon aligns DA3-LARGE depth to sensor measurements and refines it over five frames before fusion.</p>
+
+      <div class="recon-extras">
+        <details>
+          <summary>RGB and rendered depth</summary>
+          <figure>
+            <img src="experiments/results/scannetpp_v2/headlines.gif" width="800" height="306" loading="lazy"
+              alt="RGB and depth rendered from raw sensor fusion and GlassRecon across the three featured scenes" />
+            <figcaption>Apartment, conference room, and office. Black pixels in the rendered depths indicate rays that missed the mesh.</figcaption>
+          </figure>
+        </details>
+        <details>
+          <summary>Apartment reconstruction video</summary>
+          <figure>
+            <video controls playsinline preload="none" width="1440" height="448"
+              poster="experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640_interior.jpg"
+              aria-label="Apartment point cloud reconstruction video">
+              <source src="experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4" type="video/mp4" />
+            </video>
+            <figcaption>RGB and the raw, globally aligned, and regionally aligned reconstructions.
+              <a href="experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4">Open MP4</a>.</figcaption>
+          </figure>
+        </details>
+      </div>
+    </div>
+  </section>
 
   <!-- ───────────────  Abstract  ─────────────── -->
   <section id="abstract" class="alt">
