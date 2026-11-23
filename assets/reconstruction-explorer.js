@@ -110,10 +110,4 @@
   slider.disabled = false;
   restoreSelection();
   updateDivider();
-
-  const video = document.querySelector(".recon-extras video");
-  const videoPanel = video.closest("details");
-  videoPanel.addEventListener("toggle", () => {
-    if (!videoPanel.open) video.pause();
-  });
 })();
