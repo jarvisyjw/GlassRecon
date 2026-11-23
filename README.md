@@ -18,11 +18,11 @@ GlassRecon aligns relative depth predictions with RGB-D sensor measurements to r
 
 ## Sample demo
 
-![ScanNet++ demo showing RGB, raw sensor fusion, and sliding-window reconstruction](experiments/results/scannetpp_v2/headlines.gif)
+<img src="experiments/results/scannetpp_v2/headlines.gif" width="100%" alt="ScanNet++ demo showing RGB, raw sensor fusion, and sliding-window reconstruction">
 
 The GIF shows an apartment, a conference room, and an office from ScanNet++ v2. The panels show RGB, depth rendered from raw sensor fusion, and depth rendered from GlassRecon’s sliding-window reconstruction. See the [scene IDs, evaluation results, and reproduction commands](docs/scannetpp.md).
 
-![Complete colored point clouds of the ScanNet++ apartment, with raw sensor depth on the left and GlassRecon on the right](experiments/results/scannetpp_v2/apartment_colored_pointclouds.jpg)
+<img src="experiments/results/scannetpp_v2/apartment_colored_pointclouds.jpg" width="100%" alt="Complete colored point clouds of the ScanNet++ apartment, with raw sensor depth on the left and GlassRecon on the right">
 
 nvblox reconstructed both colored point clouds for apartment `c0f5742640` from the same 468 frames and COLMAP poses. Raw sensor depth produced 1,173,576 points (left). GlassRecon produced 447,008 points (right) after aligning DA3-LARGE predictions to sensor depth and refining them over a five-frame window. Both views use the original PLY colors and the same viewing direction. Each panel fits its entire cloud and shows a one-meter scale bar.
 
