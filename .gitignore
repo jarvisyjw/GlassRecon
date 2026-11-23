@@ -1,5 +1,6 @@
 .venv/
 .venv-nvblox/
+.venv-demo/
 __pycache__/
 *.py[cod]
 *.egg-info/

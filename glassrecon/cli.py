@@ -64,9 +64,9 @@ def build_parser():
     model_options(recon)
     recon.add_argument(
         "--depth-source",
-        choices=["aligned", "sensor"],
+        choices=["aligned", "sensor", "metric"],
         default="aligned",
-        help="Fuse recovered model depth, or run a raw-sensor baseline",
+        help="Fuse aligned predictions, raw sensor depth, or prepared metric depth",
     )
     recon.add_argument("--alignment", choices=["local", "global"], default="local")
     recon.add_argument(
@@ -96,7 +96,7 @@ def build_parser():
     )
     recon.add_argument(
         "--tracking-depth",
-        choices=["aligned", "sensor"],
+        choices=["aligned", "sensor", "metric"],
         default="sensor",
         help="Depth used for odometry; fusion still follows --depth-source",
     )
@@ -160,6 +160,10 @@ def main(argv=None):
     if args.command == "view" and args.port > 65535:
         parser.error("--port must be between 1 and 65535")
     if args.command == "reconstruct":
+        if args.depth_source == "metric" and args.depth_units_per_meter != 1:
+            parser.error("Prepared metric depth requires --depth-units-per-meter 1")
+        if args.depth_source == "metric" and args.pose_source != "file":
+            parser.error("Prepared metric depth requires supplied poses")
         if args.start < 0 or args.seed < 0:
             parser.error("--start and --seed must be nonnegative")
         if args.samples < 2 or args.min_depth >= args.max_depth:

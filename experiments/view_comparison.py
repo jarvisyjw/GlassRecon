@@ -61,12 +61,15 @@ def serve(paths, host="127.0.0.1", port=8082):
         protocol = report["protocol"]
         depth = value["heldout_render_common_support"]
         coverage = value["heldout_render"]["coverage"]
+        summary = json.loads((roots[sequence.value] / name / "summary.json").read_text())
+        integrated = summary["integrated"]
         content = (
             f"**{LABELS[name]}**\n\n"
             f"Depth predictor: `{report['model_id']}`\n\n"
             f"Fusion backend: `{protocol.get('backend', 'open3d')}`\n\n"
-            f"Identical supplied poses · {protocol['fused_frames']} fused frames · "
+            f"Identical supplied poses · {protocol['fused_frames']} selected fusion frames · "
             f"{protocol['heldout_frames']} held out\n\n"
+            f"This method integrated **{integrated}** frames.\n\n"
             f"Held-out depth MAE: **{depth['mae_m'] * 100:.2f} cm** "
             f"on common pixels\n\nRender coverage: **{coverage * 100:.2f}%**\n\n"
         )

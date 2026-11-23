@@ -11,8 +11,14 @@ from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
-from glassrecon.alignment import AlignmentConfig, AlignmentResult, recover_metric_depth
+from glassrecon.alignment import (
+    AlignmentConfig,
+    AlignmentError,
+    AlignmentResult,
+    recover_metric_depth,
+)
 from glassrecon.data import (
     TUM_INTRINSICS,
     CameraIntrinsics,
@@ -86,7 +92,7 @@ def run(args):
         fused_frames=len(train),
         heldout_frames=len(heldout),
         excluded_no_pose=excluded,
-        pose_source="supplied_ground_truth",
+        pose_source="supplied",
         pose_convention="camera_to_world",
         metric_depth_unit="meters",
         registration="none; no ICP or scale fit",
@@ -128,6 +134,8 @@ def run(args):
             (output / "selection.json").read_text()
         ):
             raise ValueError("Reused recovery frame selection differs")
+        if old.get("valid_mask_dir") != settings.get("valid_mask_dir"):
+            raise ValueError("Reused recovery validity masks differ")
         previous_fits = {
             r["frame"]: r["alignment"]
             for r in map(json.loads, (baseline / "frames.jsonl").read_text().splitlines())
@@ -195,7 +203,16 @@ def run(args):
             for name, method in [("global", "global"), ("regional", "local")]:
                 # Frame-specific seeds are stable if the split or execution order changes.
                 if previous_fits is not None:
-                    fit = AlignmentResult(**previous_fits[frame.key][name])
+                    recorded = previous_fits[frame.key][name]
+                    if "failure" in recorded:
+                        if name != "global" or getattr(args, "global_failure", "error") != "empty":
+                            raise ValueError(
+                                "Reused failed fit requires explicit global empty policy"
+                            )
+                        depths[name] = np.zeros_like(sensor)
+                        alignments[name] = recorded
+                        continue
+                    fit = AlignmentResult(**recorded)
                     depths[name] = metric_transform(
                         prediction,
                         fit.scale,
@@ -205,13 +222,23 @@ def run(args):
                         args.max_depth,
                     )
                 else:
-                    depths[name], fit = recover_metric_depth(
-                        prediction,
-                        sensor,
-                        predictor.representation,
-                        configs[method],
-                        np.random.default_rng(np.random.SeedSequence([args.seed, index])),
-                    )
+                    try:
+                        depths[name], fit = recover_metric_depth(
+                            prediction,
+                            sensor,
+                            predictor.representation,
+                            configs[method],
+                            np.random.default_rng(np.random.SeedSequence([args.seed, index])),
+                        )
+                    except AlignmentError as exc:
+                        if name != "global" or getattr(args, "global_failure", "error") != "empty":
+                            raise
+                        depths[name] = np.zeros_like(sensor)
+                        alignments[name] = {"failure": str(exc), "policy": "empty_depth"}
+                        print(
+                            f"{frame.key}: global fit failed; empty global depth: {exc}", flush=True
+                        )
+                        continue
                 alignments[name] = asdict(fit)
             if enhanced:
                 depths["refined"], alignments["refinement"] = refine_alignment(
@@ -246,7 +273,16 @@ def run(args):
                     visible_points.append(points[z > 0])
                 for name in variants:
                     metric_accumulators[name].add(depths[name], clean)
+            if getattr(args, "valid_mask_dir", None):
+                with Image.open(Path(args.valid_mask_dir) / f"{frame.key}.png") as image:
+                    valid_mask = np.array(image) == 255
+                if valid_mask.shape != sensor.shape:
+                    raise ValueError("Validity mask dimensions differ from depth")
+                for depth in depths.values():
+                    depth[~valid_mask] = 0
             for name, mapper in mappers.items():
+                if alignments.get(name, {}).get("policy") == "empty_depth":
+                    continue
                 mapper.integrate(rgb, depths[name], pose)
             pose_rows.append([frame.timestamp, *pose[:3, 3], *matrix_quaternion(pose[:3, :3])])
             log.write(
@@ -276,7 +312,8 @@ def run(args):
                 )
     results = {}
     meshes = {}
-    for name, mapper in mappers.items():
+    for name in variants:
+        mapper = mappers.pop(name)
         folder = output / name
         folder.mkdir()
         geometry = mapper.export(folder)
@@ -287,8 +324,9 @@ def run(args):
         results[name] = {"geometry": geometry}
         if clean_frames:
             results[name]["input_depth_against_clean"] = metric_accumulators[name].summary()
-    # Release TSDF volumes before constructing raycasting acceleration structures.
-    del mapper, mappers
+        # Export allocates a GPU mesh; release each volume before exporting the next.
+        del mapper
+    del mappers
     surfaces = {name: MeshSurface(mesh) for name, mesh in meshes.items()}
     rendered_metrics = {name: DepthMetrics() for name in variants}
     common_metrics = {name: DepthMetrics() for name in variants}
@@ -372,6 +410,9 @@ def parser():
     result.add_argument("--poses", required=True)
     result.add_argument("--output", required=True)
     result.add_argument("--intrinsics")
+    result.add_argument(
+        "--valid-mask-dir", help="Rectified validity masks applied to every fused depth"
+    )
     result.add_argument("--reference-depth")
     result.add_argument("--reference-mesh")
     result.add_argument("--model", choices=["da3", "da2", "cached"], default="da3")
@@ -384,6 +425,12 @@ def parser():
     )
     result.add_argument(
         "--reuse-recovery", help="Reuse verified baseline fits with its exact cache"
+    )
+    result.add_argument(
+        "--global-failure",
+        choices=["error", "empty"],
+        default="error",
+        help="Explicitly allow a failed global baseline to contribute no geometry",
     )
     result.add_argument("--seed", type=int, default=0)
     result.add_argument("--iterations", type=int, default=100)
