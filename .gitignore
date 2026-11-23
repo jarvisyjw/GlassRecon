@@ -1,5 +1,12 @@
-# Local paper sources (LaTeX, figures, build artifacts) — not part of the published site.
-assets/
-
-# macOS
-.DS_Store
+.venv/
+.venv-nvblox/
+.venv-demo/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+outputs/
+data/

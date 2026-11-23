@@ -1,0 +1,470 @@
+{
+  "notes": [
+    "Frame selections, camera trajectories and reconstruction/evaluation parameters verified identical.",
+    "Depth common support is shared across fusion methods within each run, not across models; inspect coverage.",
+    "Consult model_environment.json for hardware, precision and runtime differences.",
+    "TUM measures held-out sensor consistency, not independent surface accuracy."
+  ],
+  "rows": [
+    {
+      "sequence": "rgbd_dataset_freiburg1_xyz",
+      "variant": "sensor",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 3.207811113011289,
+      "candidate": 3.2461412649840122,
+      "candidate_minus_baseline": 0.03833015197272305
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_xyz",
+      "variant": "sensor",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.88034866840697,
+      "candidate": 99.88034866840697,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_xyz",
+      "variant": "global",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 13.865645563386275,
+      "candidate": 6.589334032673298,
+      "candidate_minus_baseline": -7.276311530712977
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_xyz",
+      "variant": "global",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.44566323596744,
+      "candidate": 99.83673256820713,
+      "candidate_minus_baseline": 0.391069332239681
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_xyz",
+      "variant": "regional",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 13.726728113123714,
+      "candidate": 6.471402198954408,
+      "candidate_minus_baseline": -7.2553259141693065
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_xyz",
+      "variant": "regional",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.28508654866451,
+      "candidate": 99.86758933163209,
+      "candidate_minus_baseline": 0.5825027829675804
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_desk",
+      "variant": "sensor",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 4.535253118734358,
+      "candidate": 4.65891466042988,
+      "candidate_minus_baseline": 0.12366154169552157
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_desk",
+      "variant": "sensor",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.67682282760353,
+      "candidate": 99.67682282760353,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_desk",
+      "variant": "global",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 15.20309323573566,
+      "candidate": 7.163127628786851,
+      "candidate_minus_baseline": -8.039965606948808
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_desk",
+      "variant": "global",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 98.87290523505858,
+      "candidate": 99.6544867390824,
+      "candidate_minus_baseline": 0.7815815040238192
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_desk",
+      "variant": "regional",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 11.908928341498626,
+      "candidate": 7.112547176978287,
+      "candidate_minus_baseline": -4.796381164520339
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_desk",
+      "variant": "regional",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 98.7367095733444,
+      "candidate": 99.60939084220371,
+      "candidate_minus_baseline": 0.87268126885931
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_room",
+      "variant": "sensor",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 5.38133827712363,
+      "candidate": 5.4958053481245015,
+      "candidate_minus_baseline": 0.11446707100087128
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_room",
+      "variant": "sensor",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.5510316960066,
+      "candidate": 99.5510316960066,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_room",
+      "variant": "global",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 22.968901634235863,
+      "candidate": 12.67568961154982,
+      "candidate_minus_baseline": -10.293212022686042
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_room",
+      "variant": "global",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 98.70825412317573,
+      "candidate": 99.48981677409978,
+      "candidate_minus_baseline": 0.7815626509240445
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_room",
+      "variant": "regional",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 17.190472281984043,
+      "candidate": 10.635638192248141,
+      "candidate_minus_baseline": -6.554834089735902
+    },
+    {
+      "sequence": "rgbd_dataset_freiburg1_room",
+      "variant": "regional",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 98.74479130657271,
+      "candidate": 99.49546893506727,
+      "candidate_minus_baseline": 0.7506776284945573
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 1.7029970399973529,
+      "candidate": 1.69959980242647,
+      "candidate_minus_baseline": -0.0033972375708828384
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.69147565107204,
+      "candidate": 99.69147565107204,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "accuracy_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 1.1152076534926891,
+      "candidate": 1.1152076534926891,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "accuracy_median_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 0.9937286376953125,
+      "candidate": 0.9937286376953125,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "accuracy_p95_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 2.3177659139037132,
+      "candidate": 2.3177659511566153,
+      "candidate_minus_baseline": 3.725290209644072e-08
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "completeness_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 1.1557008139789104,
+      "candidate": 1.155700720846653,
+      "candidate_minus_baseline": -9.313225746154785e-08
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "sensor",
+      "metric": "fscore_5cm_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.73613393055749,
+      "candidate": 99.73613393055749,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 7.7868150748878495,
+      "candidate": 6.8588010221089,
+      "candidate_minus_baseline": -0.9280140527789493
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.71951785443783,
+      "candidate": 99.73740114597335,
+      "candidate_minus_baseline": 0.017883291535525814
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "accuracy_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 12.525543570518494,
+      "candidate": 5.247674882411957,
+      "candidate_minus_baseline": -7.277868688106537
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "accuracy_median_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 4.497604072093964,
+      "candidate": 4.041153192520142,
+      "candidate_minus_baseline": -0.456450879573822
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "accuracy_p95_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 74.7519314289093,
+      "candidate": 14.760714769363403,
+      "candidate_minus_baseline": -59.9912166595459
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "completeness_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 4.549562558531761,
+      "candidate": 5.7106465101242065,
+      "candidate_minus_baseline": 1.1610839515924454
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "global",
+      "metric": "fscore_5cm_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 59.93500234440262,
+      "candidate": 59.55892381478088,
+      "candidate_minus_baseline": -0.3760785296217364
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 7.130075837590953,
+      "candidate": 4.638581398462402,
+      "candidate_minus_baseline": -2.4914944391285507
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.65558884419235,
+      "candidate": 99.71218420211065,
+      "candidate_minus_baseline": 0.056595357918297395
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "accuracy_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 52.505576610565186,
+      "candidate": 3.042973205447197,
+      "candidate_minus_baseline": -49.46260340511799
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "accuracy_median_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 3.522907570004463,
+      "candidate": 1.625971868634224,
+      "candidate_minus_baseline": -1.8969357013702393
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "accuracy_p95_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 239.7695541381836,
+      "candidate": 10.563371554016992,
+      "candidate_minus_baseline": -229.2061825841666
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "completeness_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 2.8734056279063225,
+      "candidate": 2.909063547849655,
+      "candidate_minus_baseline": 0.03565791994333267
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "regional",
+      "metric": "fscore_5cm_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 71.05641758143089,
+      "candidate": 90.11779646850864,
+      "candidate_minus_baseline": 19.06137888707775
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "heldout_depth_mae_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 0.4600431962819511,
+      "candidate": 0.46098693770186916,
+      "candidate_minus_baseline": 0.0009437414199180427
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "render_coverage_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.43575961009014,
+      "candidate": 99.43575961009014,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "accuracy_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 0.2397826174274087,
+      "candidate": 0.23978264071047306,
+      "candidate_minus_baseline": 2.3283064365386963e-08
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "accuracy_median_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 0.11585727334022522,
+      "candidate": 0.11585727334022522,
+      "candidate_minus_baseline": 0.0
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "accuracy_p95_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 0.6491388659924269,
+      "candidate": 0.6491388706490384,
+      "candidate_minus_baseline": 4.656611540809763e-09
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "completeness_mean_cm",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 0.14764541992917657,
+      "candidate": 0.1476453966461122,
+      "candidate_minus_baseline": -2.3283064365386963e-08
+    },
+    {
+      "sequence": "icl_kt2_noisy",
+      "variant": "clean_oracle",
+      "metric": "fscore_5cm_percent",
+      "baseline_model": "depth-anything/DA3-SMALL",
+      "candidate_model": "depth-anything/DA3-LARGE",
+      "baseline": 99.69791552897209,
+      "candidate": 99.69791552897209,
+      "candidate_minus_baseline": 0.0
+    }
+  ]
+}

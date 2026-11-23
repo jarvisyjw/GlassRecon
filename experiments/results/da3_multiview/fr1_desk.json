@@ -1,0 +1,193 @@
+{
+  "protocol": {
+    "dataset": "data/rgbd_dataset_freiburg1_desk",
+    "poses": "data/rgbd_dataset_freiburg1_desk/groundtruth.txt",
+    "output": "outputs/comparison_multiview_fr1_desk",
+    "intrinsics": null,
+    "reference_depth": null,
+    "reference_mesh": null,
+    "model": "cached",
+    "model_id": null,
+    "device": "cpu",
+    "prediction_dir": "outputs/comparison_large_fr1_desk/predictions",
+    "seed": 0,
+    "iterations": 100,
+    "holdout_every": 5,
+    "max_frames": null,
+    "pose_max_difference": 0.05,
+    "depth_units_per_meter": 5000,
+    "voxel_size": 0.02,
+    "sdf_trunc": 0.08,
+    "min_depth": 0.1,
+    "max_depth": 10,
+    "eval_pixel_step": 4,
+    "reference_every": 5,
+    "reference_voxel_size": 0.01,
+    "surface_samples": 100000,
+    "reuse_recovery": "outputs/comparison_large_fr1_desk",
+    "enhance": false,
+    "multiview_dir": "outputs/comparison_multiview_fr1_desk_depths",
+    "intrinsics_used": {
+      "width": 640,
+      "height": 480,
+      "fx": 525.0,
+      "fy": 525.0,
+      "cx": 319.5,
+      "cy": 239.5
+    },
+    "counts": {
+      "rgb_frames": 613,
+      "depth_frames": 595,
+      "associated": 573
+    },
+    "selected_frames": 573,
+    "fused_frames": 458,
+    "heldout_frames": 115,
+    "excluded_no_pose": [],
+    "pose_source": "supplied_ground_truth",
+    "pose_convention": "camera_to_world",
+    "metric_depth_unit": "meters",
+    "registration": "none; no ICP or scale fit",
+    "heldout_rule": "associated frame index modulo holdout_every equals zero",
+    "multiview": {
+      "size": 5,
+      "sample_step": 8,
+      "temporal_weight": 1.0,
+      "iterations": 5,
+      "huber_delta": 1.5,
+      "correction_sigma": 0.15,
+      "min_matches": 30,
+      "minimum": 0.1,
+      "maximum": 10
+    },
+    "multiview_latency_frames": 4,
+    "common_support_variants": [
+      "sensor",
+      "global",
+      "regional",
+      "window_anchor",
+      "multiview"
+    ]
+  },
+  "model_id": "depth-anything/DA3-LARGE",
+  "prediction_space": "depth",
+  "heldout_reference": "held-out noisy TUM sensor depth; consistency, not surface ground truth",
+  "seconds": 21.614654119999614,
+  "results": {
+    "sensor": {
+      "geometry": {
+        "mesh_vertices": 127446,
+        "mesh_triangles": 234813,
+        "pointcloud_points": 125584
+      },
+      "heldout_render": {
+        "reference_pixels": 1652035,
+        "compared_pixels": 1646696,
+        "coverage": 0.9967682282760353,
+        "mae_m": 0.04712948870610183,
+        "rmse_m": 0.15722128770618876,
+        "abs_rel": 0.037437762989768364
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 1638121,
+        "compared_pixels": 1638121,
+        "coverage": 1.0,
+        "mae_m": 0.046415535009142056,
+        "rmse_m": 0.15478378969653733,
+        "abs_rel": 0.036935305967175834
+      }
+    },
+    "global": {
+      "geometry": {
+        "mesh_vertices": 206354,
+        "mesh_triangles": 377473,
+        "pointcloud_points": 202605
+      },
+      "heldout_render": {
+        "reference_pixels": 1652035,
+        "compared_pixels": 1646327,
+        "coverage": 0.996544867390824,
+        "mae_m": 0.07291722987140205,
+        "rmse_m": 0.21256387740164798,
+        "abs_rel": 0.05688577630636676
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 1638121,
+        "compared_pixels": 1638121,
+        "coverage": 1.0,
+        "mae_m": 0.07131139682009059,
+        "rmse_m": 0.20919997776037333,
+        "abs_rel": 0.055634579455297505
+      }
+    },
+    "regional": {
+      "geometry": {
+        "mesh_vertices": 228084,
+        "mesh_triangles": 418287,
+        "pointcloud_points": 223877
+      },
+      "heldout_render": {
+        "reference_pixels": 1652035,
+        "compared_pixels": 1645582,
+        "coverage": 0.996093908422037,
+        "mae_m": 0.07234432449983422,
+        "rmse_m": 0.21546018453683288,
+        "abs_rel": 0.05425433411657933
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 1638121,
+        "compared_pixels": 1638121,
+        "coverage": 1.0,
+        "mae_m": 0.07078416167326818,
+        "rmse_m": 0.2119004618824922,
+        "abs_rel": 0.05305597727023786
+      }
+    },
+    "window_anchor": {
+      "geometry": {
+        "mesh_vertices": 219377,
+        "mesh_triangles": 401163,
+        "pointcloud_points": 215268
+      },
+      "heldout_render": {
+        "reference_pixels": 1652035,
+        "compared_pixels": 1645768,
+        "coverage": 0.9962064968357208,
+        "mae_m": 0.07196839913478056,
+        "rmse_m": 0.21501987154966756,
+        "abs_rel": 0.054112781845376184
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 1638121,
+        "compared_pixels": 1638121,
+        "coverage": 1.0,
+        "mae_m": 0.07037560858794345,
+        "rmse_m": 0.21143570306350004,
+        "abs_rel": 0.05289276718050981
+      }
+    },
+    "multiview": {
+      "geometry": {
+        "mesh_vertices": 209929,
+        "mesh_triangles": 384344,
+        "pointcloud_points": 206409
+      },
+      "heldout_render": {
+        "reference_pixels": 1652035,
+        "compared_pixels": 1645699,
+        "coverage": 0.9961647301661284,
+        "mae_m": 0.07056326836904239,
+        "rmse_m": 0.2118080220218668,
+        "abs_rel": 0.05342382034046451
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 1638121,
+        "compared_pixels": 1638121,
+        "coverage": 1.0,
+        "mae_m": 0.06900499685460852,
+        "rmse_m": 0.20820320151125568,
+        "abs_rel": 0.05223559091289286
+      }
+    }
+  }
+}

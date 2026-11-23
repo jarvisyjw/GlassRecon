@@ -1,0 +1,439 @@
+{
+  "protocol": {
+    "dataset": "data/icl_kt2_noisy",
+    "poses": "data/icl_kt2_noisy/groundtruth_opencv.txt",
+    "output": "outputs/comparison_nvblox_icl_kt2",
+    "intrinsics": "data/icl_reference/intrinsics.json",
+    "reference_depth": "data/icl_kt2_clean",
+    "reference_mesh": "data/icl_reference/living_room_opencv.ply",
+    "model": "cached",
+    "model_id": null,
+    "device": "cpu",
+    "prediction_dir": "outputs/comparison_large_icl_kt2/predictions",
+    "multiview_dir": "outputs/comparison_multiview_icl_kt2_depths",
+    "enhance": false,
+    "reuse_recovery": "outputs/comparison_large_icl_kt2",
+    "seed": 0,
+    "iterations": 100,
+    "holdout_every": 5,
+    "max_frames": null,
+    "pose_max_difference": 0.05,
+    "depth_units_per_meter": 5000,
+    "voxel_size": 0.02,
+    "backend": "nvblox",
+    "sdf_trunc": 0.08,
+    "min_depth": 0.1,
+    "max_depth": 10,
+    "eval_pixel_step": 4,
+    "reference_every": 5,
+    "reference_voxel_size": 0.01,
+    "surface_samples": 100000,
+    "intrinsics_used": {
+      "width": 640,
+      "height": 480,
+      "fx": 481.2,
+      "fy": 480.0,
+      "cx": 319.5,
+      "cy": 239.5
+    },
+    "counts": {
+      "rgb_frames": 881,
+      "depth_frames": 881,
+      "associated": 881
+    },
+    "selected_frames": 880,
+    "fused_frames": 704,
+    "heldout_frames": 176,
+    "excluded_no_pose": [
+      "0"
+    ],
+    "pose_source": "supplied_ground_truth",
+    "pose_convention": "camera_to_world",
+    "metric_depth_unit": "meters",
+    "registration": "none; no ICP or scale fit",
+    "heldout_rule": "associated frame index modulo holdout_every equals zero",
+    "multiview": {
+      "size": 5,
+      "sample_step": 8,
+      "temporal_weight": 1.0,
+      "iterations": 5,
+      "huber_delta": 1.5,
+      "correction_sigma": 0.15,
+      "min_matches": 30,
+      "minimum": 0.1,
+      "maximum": 10
+    },
+    "multiview_latency_frames": 4,
+    "common_support_variants": [
+      "sensor",
+      "global",
+      "regional",
+      "window_anchor",
+      "multiview"
+    ],
+    "reconstruction_backend": {
+      "name": "nvblox",
+      "version": "0.0.10.dev1+cu12ubuntu24",
+      "git_sha": "e4a2b00f45ecf989682d72a33a2c29defe39fd2d",
+      "torch": "2.9.1+cu128",
+      "cuda_runtime": "12.8",
+      "gpu": "NVIDIA RTX PRO 5000 Blackwell",
+      "voxel_size_m": 0.02,
+      "truncation_distance_vox": 4.0,
+      "max_integration_distance_m": 10.0,
+      "weighting_mode": "kInverseSquareWeight",
+      "max_weight": 5.0,
+      "pose_convention": "camera_to_world",
+      "depth_convention": "optical_axis_z_meters",
+      "pointcloud_source": "extracted mesh vertices"
+    }
+  },
+  "model_id": "depth-anything/DA3-LARGE",
+  "prediction_space": "depth",
+  "heldout_reference": "independent clean rendered depth",
+  "seconds": 54.4157466070028,
+  "results": {
+    "sensor": {
+      "geometry": {
+        "mesh_vertices": 347645,
+        "mesh_triangles": 534813,
+        "pointcloud_points": 347645
+      },
+      "input_depth_against_clean": {
+        "reference_pixels": 212936738,
+        "compared_pixels": 211237572,
+        "coverage": 0.9920203248346934,
+        "mae_m": 0.05432472546591716,
+        "rmse_m": 0.2662429245247162,
+        "abs_rel": 0.02097788798186501
+      },
+      "heldout_render": {
+        "reference_pixels": 3327128,
+        "compared_pixels": 3295493,
+        "coverage": 0.9904917995340126,
+        "mae_m": 0.04051414498108116,
+        "rmse_m": 0.2627161022801389,
+        "abs_rel": 0.015011660640124882
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 3286017,
+        "compared_pixels": 3286017,
+        "coverage": 1.0,
+        "mae_m": 0.040248174413762175,
+        "rmse_m": 0.26220766979574117,
+        "abs_rel": 0.014911658614821417
+      },
+      "surface": {
+        "accuracy_mean_m": 0.01198350079357624,
+        "accuracy_median_m": 0.011421442031860352,
+        "accuracy_p95_m": 0.02554369028657675,
+        "accuracy_p99_m": 0.03546477079391479,
+        "accuracy_rmse_m": 0.022313838824629784,
+        "completeness_mean_m": 0.011500470340251923,
+        "chamfer_l1_m": 0.011741985566914082,
+        "estimated_surface_samples": 100000,
+        "visible_reference_samples": 719422,
+        "at_0.02m": {
+          "precision": 0.8923,
+          "recall": 0.8670321452499368,
+          "fscore": 0.8794846218155251
+        },
+        "at_0.05m": {
+          "precision": 0.99563,
+          "recall": 0.9967835289996692,
+          "fscore": 0.9962064305758942
+        },
+        "at_0.1m": {
+          "precision": 0.99905,
+          "recall": 0.9992480074281854,
+          "fscore": 0.999148993904009
+        }
+      }
+    },
+    "global": {
+      "geometry": {
+        "mesh_vertices": 356773,
+        "mesh_triangles": 544819,
+        "pointcloud_points": 356773
+      },
+      "input_depth_against_clean": {
+        "reference_pixels": 212936738,
+        "compared_pixels": 212936738,
+        "coverage": 1.0,
+        "mae_m": 0.07171811781387333,
+        "rmse_m": 0.1320080416856784,
+        "abs_rel": 0.02840387982174289
+      },
+      "heldout_render": {
+        "reference_pixels": 3327128,
+        "compared_pixels": 3317270,
+        "coverage": 0.9970370842360138,
+        "mae_m": 0.07545183824585908,
+        "rmse_m": 0.14997354642282987,
+        "abs_rel": 0.03177492177703107
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 3286017,
+        "compared_pixels": 3286017,
+        "coverage": 1.0,
+        "mae_m": 0.07528160372739491,
+        "rmse_m": 0.149596984606673,
+        "abs_rel": 0.03174764844649427
+      },
+      "surface": {
+        "accuracy_mean_m": 0.0529240183532238,
+        "accuracy_median_m": 0.040963612496852875,
+        "accuracy_p95_m": 0.147992169857025,
+        "accuracy_p99_m": 0.2890318334102628,
+        "accuracy_rmse_m": 0.07717660814523697,
+        "completeness_mean_m": 0.058657705783843994,
+        "chamfer_l1_m": 0.05579086393117905,
+        "estimated_surface_samples": 100000,
+        "visible_reference_samples": 719422,
+        "at_0.02m": {
+          "precision": 0.25203,
+          "recall": 0.23044471812093598,
+          "fscore": 0.24075451055431904
+        },
+        "at_0.05m": {
+          "precision": 0.61167,
+          "recall": 0.5613381297764038,
+          "fscore": 0.5854242355605537
+        },
+        "at_0.1m": {
+          "precision": 0.88184,
+          "recall": 0.8829838398047322,
+          "fscore": 0.8824115492224519
+        }
+      }
+    },
+    "regional": {
+      "geometry": {
+        "mesh_vertices": 369275,
+        "mesh_triangles": 565077,
+        "pointcloud_points": 369275
+      },
+      "input_depth_against_clean": {
+        "reference_pixels": 212936738,
+        "compared_pixels": 212936738,
+        "coverage": 1.0,
+        "mae_m": 0.045542779912430637,
+        "rmse_m": 0.1132161044717092,
+        "abs_rel": 0.01987926752226481
+      },
+      "heldout_render": {
+        "reference_pixels": 3327128,
+        "compared_pixels": 3319298,
+        "coverage": 0.9976466189458295,
+        "mae_m": 0.054117868936016486,
+        "rmse_m": 0.15080772546685403,
+        "abs_rel": 0.024977015236587113
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 3286017,
+        "compared_pixels": 3286017,
+        "coverage": 1.0,
+        "mae_m": 0.05366755240387401,
+        "rmse_m": 0.14976088548791103,
+        "abs_rel": 0.024857689606997958
+      },
+      "surface": {
+        "accuracy_mean_m": 0.031044580042362213,
+        "accuracy_median_m": 0.018682122230529785,
+        "accuracy_p95_m": 0.10236491039395328,
+        "accuracy_p99_m": 0.25474789738655057,
+        "accuracy_rmse_m": 0.05561645328998566,
+        "completeness_mean_m": 0.0317981094121933,
+        "chamfer_l1_m": 0.031421344727277756,
+        "estimated_surface_samples": 100000,
+        "visible_reference_samples": 719422,
+        "at_0.02m": {
+          "precision": 0.54095,
+          "recall": 0.5476424129370523,
+          "fscore": 0.5442756347695195
+        },
+        "at_0.05m": {
+          "precision": 0.86969,
+          "recall": 0.9140407160192487,
+          "fscore": 0.8913139894667846
+        },
+        "at_0.1m": {
+          "precision": 0.94833,
+          "recall": 0.966941516939988,
+          "fscore": 0.9575453304132554
+        }
+      }
+    },
+    "window_anchor": {
+      "geometry": {
+        "mesh_vertices": 368916,
+        "mesh_triangles": 566047,
+        "pointcloud_points": 368916
+      },
+      "input_depth_against_clean": {
+        "reference_pixels": 212936738,
+        "compared_pixels": 212936738,
+        "coverage": 1.0,
+        "mae_m": 0.046648430289160936,
+        "rmse_m": 0.11251309937210113,
+        "abs_rel": 0.01975067832301398
+      },
+      "heldout_render": {
+        "reference_pixels": 3327128,
+        "compared_pixels": 3319175,
+        "coverage": 0.9976096501246721,
+        "mae_m": 0.05280730068095062,
+        "rmse_m": 0.13947687909494721,
+        "abs_rel": 0.0238461147612234
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 3286017,
+        "compared_pixels": 3286017,
+        "coverage": 1.0,
+        "mae_m": 0.052395874925860356,
+        "rmse_m": 0.13844681365935382,
+        "abs_rel": 0.023736571313381437
+      },
+      "surface": {
+        "accuracy_mean_m": 0.03272106125950813,
+        "accuracy_median_m": 0.021081000566482544,
+        "accuracy_p95_m": 0.09898508712649343,
+        "accuracy_p99_m": 0.2499591043591482,
+        "accuracy_rmse_m": 0.055820759385824203,
+        "completeness_mean_m": 0.03475479409098625,
+        "chamfer_l1_m": 0.03373792767524719,
+        "estimated_surface_samples": 100000,
+        "visible_reference_samples": 719422,
+        "at_0.02m": {
+          "precision": 0.47546,
+          "recall": 0.48319901254062286,
+          "fscore": 0.47929826872165204
+        },
+        "at_0.05m": {
+          "precision": 0.83861,
+          "recall": 0.8802900105918362,
+          "fscore": 0.8589446753546095
+        },
+        "at_0.1m": {
+          "precision": 0.9508,
+          "recall": 0.9624031514187779,
+          "fscore": 0.956566390443583
+        }
+      }
+    },
+    "multiview": {
+      "geometry": {
+        "mesh_vertices": 369858,
+        "mesh_triangles": 567157,
+        "pointcloud_points": 369858
+      },
+      "input_depth_against_clean": {
+        "reference_pixels": 212936738,
+        "compared_pixels": 212936738,
+        "coverage": 1.0,
+        "mae_m": 0.046748971950053286,
+        "rmse_m": 0.1124934874545045,
+        "abs_rel": 0.01975660546036508
+      },
+      "heldout_render": {
+        "reference_pixels": 3327128,
+        "compared_pixels": 3319282,
+        "coverage": 0.9976418099934838,
+        "mae_m": 0.0532418382177829,
+        "rmse_m": 0.13988121021126645,
+        "abs_rel": 0.024048306276781617
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 3286017,
+        "compared_pixels": 3286017,
+        "coverage": 1.0,
+        "mae_m": 0.05283024721286624,
+        "rmse_m": 0.13885568610084417,
+        "abs_rel": 0.02393951878095483
+      },
+      "surface": {
+        "accuracy_mean_m": 0.03314009681344032,
+        "accuracy_median_m": 0.021272854879498482,
+        "accuracy_p95_m": 0.10020737610757337,
+        "accuracy_p99_m": 0.25089170813560396,
+        "accuracy_rmse_m": 0.056433603167533875,
+        "completeness_mean_m": 0.035055823624134064,
+        "chamfer_l1_m": 0.03409796208143234,
+        "estimated_surface_samples": 100000,
+        "visible_reference_samples": 719422,
+        "at_0.02m": {
+          "precision": 0.47031,
+          "recall": 0.4802883425861316,
+          "fscore": 0.47524680042500006
+        },
+        "at_0.05m": {
+          "precision": 0.83522,
+          "recall": 0.8779548026054249,
+          "fscore": 0.8560543957533233
+        },
+        "at_0.1m": {
+          "precision": 0.94989,
+          "recall": 0.9614690682242133,
+          "fscore": 0.9556444609478932
+        }
+      }
+    },
+    "clean_oracle": {
+      "geometry": {
+        "mesh_vertices": 330775,
+        "mesh_triangles": 515772,
+        "pointcloud_points": 330775
+      },
+      "input_depth_against_clean": {
+        "reference_pixels": 212936738,
+        "compared_pixels": 212936738,
+        "coverage": 1.0,
+        "mae_m": 0.0,
+        "rmse_m": 0.0,
+        "abs_rel": 0.0
+      },
+      "heldout_render": {
+        "reference_pixels": 3327128,
+        "compared_pixels": 3312700,
+        "coverage": 0.995663527222277,
+        "mae_m": 0.008501436674740981,
+        "rmse_m": 0.06535068770029911,
+        "abs_rel": 0.004054123720354796
+      },
+      "heldout_render_common_support": {
+        "reference_pixels": 3286017,
+        "compared_pixels": 3280297,
+        "coverage": 0.9982592908070774,
+        "mae_m": 0.00833781544329542,
+        "rmse_m": 0.06449826461099184,
+        "abs_rel": 0.003993996615855199
+      },
+      "surface": {
+        "accuracy_mean_m": 0.004176257643848658,
+        "accuracy_median_m": 0.0029146671295166016,
+        "accuracy_p95_m": 0.009716232866048793,
+        "accuracy_p99_m": 0.03607440602034324,
+        "accuracy_rmse_m": 0.007454768288880587,
+        "completeness_mean_m": 0.0025952740106731653,
+        "chamfer_l1_m": 0.0033857659436762333,
+        "estimated_surface_samples": 100000,
+        "visible_reference_samples": 719422,
+        "at_0.02m": {
+          "precision": 0.97644,
+          "recall": 0.9939048291545157,
+          "fscore": 0.9850950118168671
+        },
+        "at_0.05m": {
+          "precision": 0.99537,
+          "recall": 0.99853215497997,
+          "fscore": 0.9969485700389317
+        },
+        "at_0.1m": {
+          "precision": 1.0,
+          "recall": 0.9994273180414277,
+          "fscore": 0.9997135770060733
+        }
+      }
+    }
+  }
+}

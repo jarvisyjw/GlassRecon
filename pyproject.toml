@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glassrecon"
+version = "0.1.0"
+description = "Metric scale recovery for relative depth models and RGB-D reconstruction"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = ["numpy>=1.24,<3", "Pillow>=10"]
+
+[project.optional-dependencies]
+mapping = ["open3d>=0.18,<0.20"]
+viewer = ["viser>=1.0,<2", "trimesh>=4,<6"]
+da2 = ["torch>=2.2", "torchvision>=0.17", "transformers>=4.45,<5"]
+legacy = ["torch>=2.2", "opencv-python>=4.8", "tqdm>=4.66"]
+dev = ["pytest>=8", "ruff>=0.8"]
+experiments = ["matplotlib>=3.8"]
+scannetpp = ["opencv-python>=4.8,<4.12", "open3d>=0.18,<0.20"]
+
+[project.scripts]
+glassrecon = "glassrecon.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["glassrecon*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["mapping: requires Open3D", "nvblox: requires nvblox_torch and a CUDA GPU"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
