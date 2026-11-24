@@ -36,7 +36,7 @@
 .recon-raw-layer { clip-path: inset(0 calc(100% - var(--split)) 0 0); }
 .recon-label {
   position: absolute; left: 12px; top: 12px; white-space: nowrap; padding: 3px 10px;
-  border: 1px solid #ffffff47; border-radius: 5px; background: #10191ee8; color: white;
+  border: 1px solid #ffffff47; border-radius: 5px; background: #10213de8; color: white;
   font-size: .85rem; font-weight: 600;
 }
 .recon-label-ours { left: auto; right: 12px; }
@@ -49,7 +49,7 @@
   position: absolute; top: 50%; left: clamp(19px, var(--split), calc(100% - 19px));
   transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center;
   gap: 5px; width: 36px; height: 36px; border: 2px solid white; border-radius: 50%;
-  background: #172329; color: white; box-shadow: 0 1px 7px #0008;
+  background: var(--accent); color: var(--on-accent); box-shadow: 0 1px 7px #0008;
 }
 .recon-grip::before, .recon-grip::after {
   content: ""; width: 6px; height: 6px; border: solid currentColor; border-width: 0 0 2px 2px;

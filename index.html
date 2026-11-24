@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>GlassRecon — Enhancing Glass Surface Reconstruction via Depth Prior for Robot Navigation</title>
 <meta name="description" content="Compare GlassRecon and raw-sensor reconstructions of glass in three ScanNet++ scenes. Explore the point clouds and depth maps, run the pipeline, and download the 917-image GlassRecon benchmark." />
-<meta name="theme-color" content="#0f766e" />
+<meta name="theme-color" content="#2454c6" />
 <script>
   try {
     const saved = localStorage.getItem("gr-theme");
@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="assets/project-page.css?v=1" />
-<link rel="stylesheet" href="assets/reconstruction-explorer.css?v=3" />
+<link rel="stylesheet" href="assets/project-page.css?v=2" />
+<link rel="stylesheet" href="assets/reconstruction-explorer.css?v=4" />
 <script defer src="assets/reconstruction-explorer.js?v=3"></script>
 </head>
 <body>
@@ -286,11 +286,18 @@
 (function () {
   "use strict";
 
-  const theme = document.querySelector(".theme-toggle");
-  theme.addEventListener("click", () => {
-    const root = document.documentElement;
+  const root = document.documentElement;
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  function syncBrowserColor() {
+    const token = root.dataset.theme === "dark" ? "--bg-soft" : "--accent";
+    const color = getComputedStyle(root).getPropertyValue(token).trim();
+    if (color) themeColor.content = color;
+  }
+  syncBrowserColor();
+  document.querySelector(".theme-toggle").addEventListener("click", () => {
     const next = root.dataset.theme === "dark" ? "light" : "dark";
     root.dataset.theme = next;
+    syncBrowserColor();
     try { localStorage.setItem("gr-theme", next); } catch {}
   });
 
