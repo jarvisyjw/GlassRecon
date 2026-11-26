@@ -2,5 +2,7 @@
 torch==2.9.1
 torchvision==0.24.1
 xformers==0.0.33.post2
+# The pinned DA3 source imports addict directly when loading its depth head.
+addict==2.4.0
 depth-anything-3 @ git+https://github.com/ByteDance-Seed/Depth-Anything-3.git@3d835ec1a5802d64a8b8b15f817a1ab54809bfe4
 -e .[legacy]
