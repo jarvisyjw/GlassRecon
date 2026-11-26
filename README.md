@@ -15,7 +15,7 @@ GlassRecon turns a relative depth prediction from **DA3-LARGE** into metric dept
 | Task | Data | What you run |
 | --- | --- | --- |
 | [Quick Start](#quick-start) | [Apartment mapping demo · 394 MiB](https://drive.google.com/file/d/1nArawK8jakviM-ooHapZceBZi2jVkhqZ/view?usp=drive_link) | Fuse 468 RGB frames and their prepared metric depths using supplied camera poses. |
-| [Complete Pipeline](#complete-pipeline) | [ScanNet++ v2 scene inputs and preparation](docs/scannetpp.md) | Start with RGB, measured sensor depth, intrinsics and poses. Predict depth, align it and reconstruct the scene. |
+| [Complete Pipeline](#complete-pipeline) | [11 ScanNet++ v2 scenes · 1.85 GiB](https://drive.google.com/drive/folders/1M-jf2Qr56rrLEPYK05y3Rt0m7HGCZBFV?usp=sharing) | Start with RGB, measured sensor depth, intrinsics and poses. Predict depth, align it and reconstruct the scene. |
 | [Evaluation](#evaluation) | [GlassRecon.zip · 9.56 GB](https://drive.google.com/file/d/1u1ODwddeW04bkQ4oda9vgvbKK8MXTQ5N/view?usp=sharing) | Evaluate single-image glass depth on 917 annotated indoor RGB-D images. |
 
 The apartment demo and full-scene inputs contain ScanNet++ data. Access is for research collaborators who have signed the [ScanNet++ terms of use](https://scannetpp.mlsg.cit.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf). Users can also [request data from ScanNet++](https://scannetpp.mlsg.cit.tum.de/scannetpp/).
@@ -86,9 +86,10 @@ The run writes `mesh.ply`, `pointcloud.ply` and `trajectory.txt` to `outputs/apa
 
 ### Complete Pipeline
 
-Prepare the three scenes under `data/scannetpp/` using the [ScanNet++ scene guide](docs/scannetpp.md). Select the apartment (`c0f5742640`), conference room (`791a5c253d`) or office (`8a20d62ac0`). This example processes all 586 apartment frames.
+Download `scannetpp_rgbd_11_scenes.tar.gz` from the shared folder and save it under `data/`. It contains 7,748 registered RGB-D frames across 11 scenes. The example below reconstructs the apartment from all 586 frames. Set `scene` to any ID in the guide to reconstruct another scene. [Google Drive folder](https://drive.google.com/drive/folders/1M-jf2Qr56rrLEPYK05y3Rt0m7HGCZBFV?usp=sharing) · [Scene IDs, frame counts and checksum](docs/scannetpp.md)
 
 ```bash
+tar -xzf data/scannetpp_rgbd_11_scenes.tar.gz -C data
 scene=c0f5742640
 sequence="data/scannetpp/$scene"
 "$NVBLOX_PYTHON" examples/run_full_pipeline.py \
