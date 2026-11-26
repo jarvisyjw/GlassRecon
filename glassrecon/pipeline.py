@@ -88,6 +88,9 @@ def reconstruct(args, observer=None):
             tracking_depth=args.tracking_depth,
         )
     trajectory = PoseTrajectory(args.pose_file) if args.pose_source == "file" else None
+    mask_dir = getattr(args, "valid_mask_dir", None)
+    if mask_dir:
+        mask_dir = Path(mask_dir)
     config = AlignmentConfig(
         args.alignment,
         args.rows,
@@ -182,10 +185,22 @@ def reconstruct(args, observer=None):
                     continue
                 rgb, sensor = frame.load(args.depth_units_per_meter, intrinsics)
                 sensor[(sensor < args.min_depth) | (sensor > args.max_depth)] = 0
+                valid = None
+                if mask_dir:
+                    with Image.open(mask_dir / f"{frame.key}.png") as image:
+                        valid = np.asarray(image) == 255
+                    if valid.shape != sensor.shape:
+                        raise ValueError(
+                            f"{frame.key}: validity mask and depth dimensions must match"
+                        )
+                    rgb[~valid] = 0
+                    sensor[~valid] = 0
                 if predictor is not None:
                     prediction = predictor.predict(rgb, frame.key)
                     if args.save_predictions:
                         np.save(output / "predictions" / f"{frame.key}.npy", prediction)
+                    if valid is not None:
+                        prediction = np.where(valid, prediction, 0)
                     try:
                         depth, alignment = recover_metric_depth(
                             prediction, sensor, predictor.representation, config, rng
@@ -211,6 +226,8 @@ def reconstruct(args, observer=None):
                     pose = mapper.track(rgb, tracking_depth)
                 if predictor is not None and args.fusion_policy == "conservative":
                     depth, _, _, record["fusion"] = conservative.fuse(sensor, depth, rgb, pose)
+                    if valid is not None:
+                        depth[~valid] = 0
                 key, timestamp = frame.key, frame.timestamp
                 if window is not None:
                     node = window.push(key, timestamp, rgb, sensor, depth, pose)

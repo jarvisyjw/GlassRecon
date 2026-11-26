@@ -92,10 +92,19 @@ def test_multiview_cli_flushes_every_selected_frame_once(tmp_path):
     import json
 
     pytest.importorskip("open3d")
+    from PIL import Image
+
     from examples.make_synthetic_sequence import make_sequence
     from glassrecon.cli import main
 
     dataset = make_sequence(tmp_path / "sequence", frame_count=7, corrupt_sensor=False)
+    masks = dataset / "masks"
+    masks.mkdir()
+    for frame in (dataset / "rgb").glob("*.png"):
+        with Image.open(frame) as image:
+            mask = np.full((image.height, image.width), 255, dtype=np.uint8)
+        mask[:, :8] = 0
+        Image.fromarray(mask).save(masks / frame.name)
     output = tmp_path / "map"
     main(
         [
@@ -110,6 +119,8 @@ def test_multiview_cli_flushes_every_selected_frame_once(tmp_path):
             "cached",
             "--prediction-dir",
             str(dataset / "predictions"),
+            "--valid-mask-dir",
+            str(masks),
             "--pose-source",
             "file",
             "--pose-file",
@@ -127,7 +138,12 @@ def test_multiview_cli_flushes_every_selected_frame_once(tmp_path):
     assert summary["integrated"] == 7 and summary["skipped"] == 0
     trajectory = np.loadtxt(output / "trajectory.txt")
     assert trajectory.shape == (7, 8) and np.all(np.diff(trajectory[:, 0]) > 0)
-    assert len(list((output / "metric_depths").glob("*.npy"))) == 7
+    depths = list((output / "metric_depths").glob("*.npy"))
+    assert len(depths) == 7
+    for path in depths:
+        depth = np.load(path)
+        assert not np.any(depth[:, :8])
+        assert np.any(depth[:, 8:] > 0)
     rows = [json.loads(line) for line in (output / "frames.jsonl").read_text().splitlines()]
     emitted = [r["emitted_frame"] for r in rows if r["status"] == "integrated"]
     assert len(emitted) == len(set(emitted)) == 7

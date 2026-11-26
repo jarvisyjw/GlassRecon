@@ -6,204 +6,142 @@
 
 [![GlassRecon teaser](pics/teaser.jpg)](https://jarvisyjw.github.io/GlassRecon/)
 
-Our method, combined with Depth Anything 3 (DA3), achieves superior performance on glass surface
-(red bounding box) depth estimation compared to raw depth sensor measurements, providing accurate
-geometry for robot navigation in indoor environments. **(a)** points reconstructed from the sensor
-depth — the robot might misperceive the glass as traversable, leading to a collision. **(b)** points
-from our estimated depth.
-
 </div>
 
-GlassRecon aligns relative depth predictions with RGB-D sensor measurements to recover metric depth and reconstruct scenes with glass surfaces.
-
-## Sample demo
-
-<img src="experiments/results/scannetpp_v2/headlines.gif" width="100%" alt="ScanNet++ demo showing RGB, raw sensor fusion, and sliding-window reconstruction">
-
-The GIF shows an apartment, a conference room, and an office from ScanNet++ v2. The panels show RGB, depth rendered from raw sensor fusion, and depth rendered from GlassRecon’s sliding-window reconstruction. See the [scene IDs, evaluation results, and reproduction commands](docs/scannetpp.md).
-
-<img src="experiments/results/scannetpp_v2/apartment_colored_pointclouds.jpg" width="100%" alt="Complete colored point clouds of the ScanNet++ apartment, with raw sensor depth on the left and GlassRecon on the right">
-
-nvblox reconstructed both colored point clouds for apartment `c0f5742640` from the same 468 frames and COLMAP poses. Raw sensor depth produced 1,173,576 points (left). GlassRecon produced 447,008 points (right) after aligning DA3-LARGE predictions to sensor depth and refining them over a five-frame window. Both views use the original PLY colors and the same viewing direction. Each panel fits its entire cloud and shows a one-meter scale bar.
+GlassRecon turns a relative depth prediction from **DA3-LARGE** into metric depth using the RGB-D sensor measurements. It refines depth over a five-frame window and fuses the sequence with **nvblox**.
 
 ## Dataset
 
-The GlassRecon dataset contains RGB images, sensor depth and annotated glass depth maps from indoor scenes. [Download the dataset (Google Drive)](https://drive.google.com/file/d/1u1ODwddeW04bkQ4oda9vgvbKK8MXTQ5N/view?usp=sharing).
+| Task | Data | What you run |
+| --- | --- | --- |
+| [Quick Start](#quick-start) | [Apartment mapping demo · 394 MiB](https://drive.google.com/file/d/1nArawK8jakviM-ooHapZceBZi2jVkhqZ/view?usp=drive_link) | Fuse 468 RGB frames and their prepared metric depths using supplied camera poses. |
+| [Complete Pipeline](#complete-pipeline) | [ScanNet++ v2 scene inputs and preparation](docs/scannetpp.md) | Start with RGB, measured sensor depth, intrinsics and poses. Predict depth, align it and reconstruct the scene. |
+| [Evaluation](#evaluation) | [GlassRecon.zip · 9.56 GB](https://drive.google.com/file/d/1u1ODwddeW04bkQ4oda9vgvbKK8MXTQ5N/view?usp=sharing) | Evaluate single-image glass depth on 917 annotated indoor RGB-D images. |
 
-```
-GlassRecon/
-├── images/                  # RGB images (PNG)
-├── intrinsics/              # JSON files with camera intrinsics & depth scale
-├── masks/                   # Binary masks for glass regions (PNG)
-├── sensor_depths/           # Raw sensor depth maps (PNG)
-├── completed_depths/        # Completed depth maps (NPY)
-└── evaluation_depths/
-    ├── depths_npy/          # Filtered depth maps (NPY) – glass regions that could not be completed are masked out
-    ├── depths_vis/          # Visualizations (PNG)
-    └── pointclouds/         # 3D point clouds (PLY) - back-projected from depths_npy using intrinsics
-```
-
-With the DA3 environment active, generate one `.npy` prediction per RGB image. The predictor keeps each image's filename stem so the evaluator can match it to the sensor and ground-truth depth files. [Environment setup](#environment-setup) · [Evaluation](#evaluation)
-
-```bash
-dataset=/path/to/GlassRecon
-python -m glassrecon predict \
-  --image-folder "$dataset/images" \
-  --model da3 --model-id depth-anything/DA3-LARGE --device cuda \
-  --output outputs/glassrecon_predictions
-```
+The apartment demo and full-scene inputs contain ScanNet++ data. Access is for research collaborators who have signed the [ScanNet++ terms of use](https://scannetpp.mlsg.cit.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf). Users can also [request data from ScanNet++](https://scannetpp.mlsg.cit.tum.de/scannetpp/).
 
 ## Usage
 
 ### Environment Setup
 
-GlassRecon uses **DA3-LARGE for relative-depth prediction** and **nvblox for CUDA TSDF reconstruction**. Run the commands from the repository root with an NVIDIA GPU. Create separate Python 3.12 environments for prediction and reconstruction to accommodate the nvblox wheel's PyTorch and NumPy requirements.
+Run the commands from the repository root. Quick Start uses the nvblox environment, evaluation uses the DA3 environment, and the complete pipeline uses both. These instructions target a CUDA-capable NVIDIA GPU on Linux x86_64. The supplied nvblox wheel targets Ubuntu 24.04 and CUDA 12. [nvblox installation details](docs/nvblox.md)
 
-The nvblox requirements below target Linux x86_64, Ubuntu 24.04, and CUDA 12. See the [nvblox installation guide](docs/nvblox.md#environment) for platform requirements and wheel details. Choose either uv or Conda.
+```bash
+git clone https://github.com/jarvisyjw/GlassRecon.git
+cd GlassRecon
+mkdir -p data
+```
 
 **uv**
 
 ```bash
-# DA3-LARGE frontend
-uv venv --python 3.12 .venv-da3
-uv pip install --python .venv-da3/bin/python -e .
-uv pip install --python .venv-da3/bin/python \
-  'git+https://github.com/ByteDance-Seed/Depth-Anything-3.git'
-
-# nvblox backend and viewer
+# Mapping (Quick Start and complete pipeline)
 uv venv --python 3.12 .venv-nvblox
-UV_SKIP_WHEEL_FILENAME_CHECK=1 uv pip install \
-  --python .venv-nvblox/bin/python -r requirements-nvblox-cu12.txt
+export NVBLOX_PYTHON="$PWD/.venv-nvblox/bin/python"
+UV_SKIP_WHEEL_FILENAME_CHECK=1 uv pip install --python "$NVBLOX_PYTHON" -r requirements-nvblox-cu12.txt
+
+# Prediction (evaluation and complete pipeline)
+uv venv --python 3.12 .venv-da3
+export DA3_PYTHON="$PWD/.venv-da3/bin/python"
+uv pip install --python "$DA3_PYTHON" -r requirements-da3-cu12.txt
 ```
 
 **Conda**
 
 ```bash
-# DA3-LARGE frontend
-conda create -n glassrecon-da3 python=3.12 pip
-conda activate glassrecon-da3
-python -m pip install -e .
-python -m pip install 'git+https://github.com/ByteDance-Seed/Depth-Anything-3.git'
-
-# nvblox backend and viewer
-conda create -n glassrecon-nvblox python=3.12 pip
+# Mapping (Quick Start and complete pipeline)
+conda create -n glassrecon-nvblox python=3.12 pip -y
 conda activate glassrecon-nvblox
+export NVBLOX_PYTHON="$CONDA_PREFIX/bin/python"
 python -m pip install uv
-UV_SKIP_WHEEL_FILENAME_CHECK=1 uv pip install \
-  --python "$(which python)" -r requirements-nvblox-cu12.txt
+UV_SKIP_WHEEL_FILENAME_CHECK=1 uv pip install --python "$NVBLOX_PYTHON" -r requirements-nvblox-cu12.txt
+
+# Prediction (evaluation and complete pipeline)
+conda create -n glassrecon-da3 python=3.12 pip -y
+conda activate glassrecon-da3
+export DA3_PYTHON="$CONDA_PREFIX/bin/python"
+python -m pip install -r requirements-da3-cu12.txt
 ```
 
-The scoped uv setting handles the official nvblox wheel's filename/version mismatch. DA3 downloads its checkpoint on first inference. See the [DA3 installation notes](https://github.com/ByteDance-Seed/Depth-Anything-3#-quick-start) for GPU dependency setup.
+The commands below use the interpreter paths set above. First inference downloads the DA3-LARGE checkpoint. For an offline run, pass its local directory with `--model-id`. [DA3-LARGE weights](https://huggingface.co/depth-anything/DA3-LARGE)
 
 ### Quick Start
 
-Use the prepared apartment demo containing RGB, scale-aligned metric depth from DA3-LARGE, intrinsics, and supplied COLMAP camera poses. This entry point requires the nvblox environment above. Activate it with `source .venv-nvblox/bin/activate` (uv) or `conda activate glassrecon-nvblox` (Conda).
-
-For collaborators who have signed the [ScanNet++ terms of use](https://scannetpp.mlsg.cit.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf), [download mapping_demo.tar.gz from Google Drive](https://drive.google.com/file/d/1nArawK8jakviM-ooHapZceBZi2jVkhqZ/view?usp=drive_link). Save the archive in the repository root and extract it:
+Save the apartment archive as `data/mapping_demo.tar.gz`. It contains RGB, final aligned depth in meters, intrinsics and COLMAP poses for the 468 fused apartment frames. [Download the demo](https://drive.google.com/file/d/1nArawK8jakviM-ooHapZceBZi2jVkhqZ/view?usp=drive_link).
 
 ```bash
-mkdir -p outputs
-tar -xzf mapping_demo.tar.gz -C outputs
-```
-
-The extracted `outputs/mapping_demo/` contains 468 frames with matching RGB, metric depth and camera poses. Run nvblox on these inputs to display the accumulating map:
-
-```bash
-python -m glassrecon reconstruct \
-  --dataset outputs/mapping_demo \
-  --intrinsics outputs/mapping_demo/intrinsics.json \
+tar -xzf data/mapping_demo.tar.gz -C data
+demo=data/mapping_demo
+"$NVBLOX_PYTHON" -m glassrecon reconstruct \
+  --dataset "$demo" --intrinsics "$demo/intrinsics.json" \
   --depth-source metric --depth-units-per-meter 1 \
-  --pose-source file --pose-file outputs/mapping_demo/poses.txt \
+  --pose-source file --pose-file "$demo/poses.txt" \
   --backend nvblox --voxel-size 0.02 --sdf-trunc 0.08 \
-  --live-view --keep-viewer --viewer-port 8090 \
-  --output outputs/demo_mapping
+  --output outputs/apartment_quick
+
+"$NVBLOX_PYTHON" -m glassrecon view --result outputs/apartment_quick --port 8090
 ```
 
-Open [Viser](http://127.0.0.1:8090) to inspect mapping. Final outputs include `mesh.ply`, `pointcloud.ply`, `trajectory.txt`, `config.json`, and `summary.json`. The prepared metric-depth mode uses depths directly. Use a new output directory for each run.
-
-To prepare the same demo from your own [ScanNet++ experiment outputs](docs/scannetpp.md), run:
-
-```bash
-python examples/prepare_mapping_demo.py \
-  --dataset data/scannetpp/c0f5742640 \
-  --depth-cache outputs/scannetpp/c0f5742640/multiview_depths \
-  --output outputs/mapping_demo
-```
+The run writes `mesh.ply`, `pointcloud.ply` and `trajectory.txt` to `outputs/apartment_quick/`. Use a new output directory for each run. The second command serves the finished map at [localhost:8090](http://127.0.0.1:8090). Over SSH, forward port 8090 to your computer. To watch fusion live, add `--live-view --keep-viewer --viewer-port 8090` to the reconstruction command.
 
 ### Complete Pipeline
 
-Start with registered RGB-D, camera intrinsics, and supplied ground-truth camera poses. The complete runner executes DA3-LARGE prediction, sensor-based scale alignment, five-frame depth refinement, and nvblox mapping in sequence.
-
-```text
-RGB → DA3-LARGE → relative depth → scale alignment → window refinement → nvblox
-                                          ↑                 ↑              ↑
-                                     sensor depth       GT poses       RGB + GT poses
-```
-
-Use TUM-format `rgb.txt` and `depth.txt` indexes. Poses use `timestamp tx ty tz qx qy qz qw`, camera-to-world transforms, and translations in meters. For uv environments:
+Prepare the three scenes under `data/scannetpp/` using the [ScanNet++ scene guide](docs/scannetpp.md). Select the apartment (`c0f5742640`), conference room (`791a5c253d`) or office (`8a20d62ac0`). This example processes all 586 apartment frames.
 
 ```bash
-.venv-nvblox/bin/python examples/run_full_pipeline.py \
-  --dataset /path/to/rgbd_sequence \
-  --rgb-folder /path/to/rgbd_sequence/rgb \
-  --intrinsics /path/to/intrinsics.json \
-  --poses /path/to/groundtruth.txt \
-  --model-python "$PWD/.venv-da3/bin/python" \
-  --mapping-python "$PWD/.venv-nvblox/bin/python" \
-  --depth-units-per-meter 5000 \
-  --live-view --output outputs/full_pipeline
+scene=c0f5742640
+sequence="data/scannetpp/$scene"
+"$NVBLOX_PYTHON" examples/run_full_pipeline.py \
+  --dataset "$sequence" --poses "$sequence/poses.txt" \
+  --depth-units-per-meter 1000 --model-python "$DA3_PYTHON" \
+  --output "outputs/$scene"
+
+"$NVBLOX_PYTHON" -m glassrecon view --result "outputs/$scene/reconstruction" --port 8090
 ```
 
-For Conda, activate `glassrecon-nvblox` and run the same script with `--model-python /absolute/path/to/envs/glassrecon-da3/bin/python`; omit `--mapping-python` to use the active Python. The first inference downloads the DA3-LARGE checkpoint.
+DA3-LARGE predicts relative depth from each RGB image. GlassRecon fits scale and shift to the measured depth, refines the result over five frames, and integrates it with nvblox at the supplied poses. Find the predictions in `predictions/` and the final colored point cloud and mesh in `reconstruction/` inside the selected output folder.
 
-The runner saves `predictions/` and `reconstruction/` under the output directory. Use fresh output directories. To inspect a completed result:
+#### Mapping with estimated poses
 
-```bash
-python -m glassrecon view --result outputs/full_pipeline/reconstruction --port 8090
-```
+To use RGB-D odometry, omit `--poses`. To use an external SLAM or VIO trajectory, pass `--poses path/to/poses.txt`. Supply synchronized camera-to-world poses as `timestamp tx ty tz qx qy qz qw` with translations in meters.
 
-For independent stages, use `python -m glassrecon predict`, followed by `reconstruct --model cached --prediction-dir ... --backend nvblox`. The [ScanNet++ reproduction guide](docs/scannetpp.md) specifies the comparison protocol, supplied COLMAP poses, and depth scale of 1000 units per meter used for the results below.
+#### Fused point cloud comparison
 
-#### Fused Point Cloud Comparison
+[![Apartment RGB, raw sensor fusion, global alignment and regional alignment](experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640_interior.jpg)](experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4)
 
-The ScanNet++ v2 apartment views below use DA3-LARGE predictions and nvblox fusion. They show the input RGB frame and the fused point clouds from raw sensor depth, global alignment, and regional alignment, from left to right.
+<video src="experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4" controls preload="none" width="100%"></video>
 
-![ScanNet++ v2 apartment: RGB frame and fused point cloud comparisons for raw sensor depth, global alignment, and regional alignment](experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640_interior.jpg)
-
-<video src="experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4" controls preload="metadata" width="100%"></video>
-
-[Apartment video](experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4) · [Conference room comparison](experiments/results/scannetpp_v2/pointcloud_videos/791a5c253d_interior.jpg) · [Office comparison](experiments/results/scannetpp_v2/pointcloud_videos/8a20d62ac0_interior.jpg)
-
-[Reproduce the ScanNet++ demo with nvblox](docs/scannetpp.md)
-
-### Mapping with Estimated Poses
-
-The initial release provides RGB-D odometry and an external trajectory interface. Dedicated SLAM/VIO frontend integration is planned for a later release.
-
-The complete runner also supports the existing RGB-D odometry frontend. Omit `--poses` to estimate camera motion from RGB and original sensor depth while DA3-LARGE predictions provide the aligned mapping depth. Reconstruction uses nvblox. The odometry implementation is Open3D hybrid RGB-D odometry.
-
-An external SLAM/VIO frontend can supply its final trajectory through `--poses`, converted to the camera-to-world TUM convention above. VIO trajectories must be transformed from the IMU/body frame to the RGB camera frame and synchronized to image timestamps. For trajectories with loop-closure corrections, supply the final optimized trajectory before reconstruction.
+[Apartment video](experiments/results/scannetpp_v2/pointcloud_videos/c0f5742640.mp4) · [Conference room](experiments/results/scannetpp_v2/pointcloud_videos/791a5c253d_interior.jpg) · [Office](experiments/results/scannetpp_v2/pointcloud_videos/8a20d62ac0_interior.jpg)
 
 ## Evaluation
 
-The paper's evaluator compares global least-squares alignment and regional RANSAC alignment against the filtered ground-truth depth maps. It reports mean absolute relative error (AbsRel) and the fraction of valid pixels with δ < 1.25. [Evaluation script](eval.py) · [Original evaluation code](https://github.com/JMamie/GlassRecon)
-
-Run the evaluator on the matching files from the [GlassRecon dataset](#dataset). Set `depth_scale` to meters per stored unit for the sensor and ground-truth files (`1.0` for meters or `0.001` for millimeters).
+Save [GlassRecon.zip](https://drive.google.com/file/d/1u1ODwddeW04bkQ4oda9vgvbKK8MXTQ5N/view?usp=sharing) in `data/`. The benchmark contains 917 RGB JPEGs, sensor depth PNGs, glass masks, camera intrinsics and reference depths. The evaluator matches files by image stem and uses the filtered reference maps in `evaluation_depths/depths_npy/`. Both stored depth formats use **0.00025 meters per unit**.
 
 ```bash
-python -m pip install -e '.[legacy]'
-dataset=/path/to/GlassRecon
-depth_scale=1.0
-python eval.py \
-  --image-folder "$dataset/images" \
-  --pred-folder outputs/glassrecon_predictions \
+unzip -q data/GlassRecon.zip -d data
+dataset=data/GlassRecon
+"$DA3_PYTHON" -m glassrecon predict \
+  --image-folder "$dataset/images" --model da3 --model-id depth-anything/DA3-LARGE \
+  --device cuda --output outputs/benchmark_predictions
+
+"$DA3_PYTHON" eval.py \
+  --image-folder "$dataset/images" --pred-folder outputs/benchmark_predictions \
   --sensor-depth-folder "$dataset/sensor_depths" \
   --gt-depth-folder "$dataset/evaluation_depths/depths_npy" \
-  --depth-scale "$depth_scale" \
-  --outdir outputs/glassrecon_eval
+  --depth-scale 0.00025 --outdir outputs/benchmark_eval
 ```
 
-For inverse-depth predictions, append `--inverse-depth` to the same command. Per-image and overall scores are saved to `outputs/glassrecon_eval/eval_results.txt`.
+Read per-image and mean AbsRel and δ < 1.25 for global and regional alignment in `outputs/benchmark_eval/eval_results.txt`. [Evaluation script](eval.py) · [Original evaluation code](https://github.com/JMamie/GlassRecon)
+
+## Sample demo
+
+<img src="experiments/results/scannetpp_v2/headlines.gif" width="100%" alt="RGB frames and depths rendered from raw-sensor and GlassRecon meshes in three ScanNet++ scenes">
+
+The three panels show the input RGB, the raw-sensor reconstruction depth and the GlassRecon reconstruction depth. Every fifth frame was held out for these comparisons. The complete pipeline above processes the full sequence.
+
+<img src="experiments/results/scannetpp_v2/apartment_colored_pointclouds.jpg" width="100%" alt="Complete colored point clouds of the apartment from raw sensor depth on the left and GlassRecon depth on the right">
+
+Both apartment point clouds use the same 468 frames, camera poses and nvblox settings. Each panel fits the whole cloud and includes a one-meter scale bar. [Explore the aligned comparisons for all three scenes](https://jarvisyjw.github.io/GlassRecon/#reconstructions).
 
 ## Citation
 

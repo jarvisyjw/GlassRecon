@@ -1,5 +1,6 @@
 .venv/
 .venv-nvblox/
+.venv-da3/
 .venv-demo/
 __pycache__/
 *.py[cod]
@@ -10,3 +11,9 @@ build/
 dist/
 outputs/
 data/
+
+# Local experiments and run artifacts. The README and site use tracked demo media.
+/experiments/
+/README.review.md
+.DS_Store
+._*

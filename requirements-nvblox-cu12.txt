@@ -4,4 +4,4 @@ https://github.com/nvidia-isaac/nvblox/releases/download/v0.0.10/nvblox_torch-0.
 torch==2.9.1
 torchvision==0.24.1
 nvidia-npp-cu12==12.4.1.87
--e .[mapping,viewer,experiments,dev]
+-e .[mapping,viewer]

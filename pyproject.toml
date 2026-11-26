@@ -16,8 +16,7 @@ viewer = ["viser>=1.0,<2", "trimesh>=4,<6"]
 da2 = ["torch>=2.2", "torchvision>=0.17", "transformers>=4.45,<5"]
 legacy = ["torch>=2.2", "opencv-python>=4.8", "tqdm>=4.66"]
 dev = ["pytest>=8", "ruff>=0.8"]
-experiments = ["matplotlib>=3.8"]
-scannetpp = ["opencv-python>=4.8,<4.12", "open3d>=0.18,<0.20"]
+scannetpp = ["opencv-python>=4.8,<4.12"]
 
 [project.scripts]
 glassrecon = "glassrecon.cli:main"

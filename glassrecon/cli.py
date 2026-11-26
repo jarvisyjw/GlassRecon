@@ -50,10 +50,13 @@ def build_parser():
     recon.add_argument("--output", required=True, help="New or empty output directory")
     recon.add_argument("--intrinsics", help="JSON containing width, height, fx, fy, cx, cy")
     recon.add_argument(
+        "--valid-mask-dir", help="Optional <RGB-stem>.png masks, 255 for valid pixels"
+    )
+    recon.add_argument(
         "--depth-units-per-meter",
         type=positive_float,
         default=5000.0,
-        help="Divide sensor values by this number; TUM PNG=5000, metric NPY=1",
+        help="Stored units per meter (ScanNet++ PNG=1000, metric NPY=1, TUM PNG=5000)",
     )
     recon.add_argument("--max-time-difference", type=positive_float, default=0.02)
     recon.add_argument(
