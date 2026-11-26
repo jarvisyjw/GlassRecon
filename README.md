@@ -164,3 +164,7 @@ If you use GlassRecon in your research, please cite this paper.
   year={2026}
 }
 ```
+
+## Contribution
+
+Full credit for the GlassRecon dataset annotations and evaluation code goes to Jiamin Zheng.
