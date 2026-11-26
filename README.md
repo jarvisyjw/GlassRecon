@@ -143,6 +143,14 @@ The three panels show the input RGB, the raw-sensor reconstruction depth and the
 
 Both apartment point clouds use the same 468 frames, camera poses and nvblox settings. Each panel fits the whole cloud and includes a one-meter scale bar. [Explore the aligned comparisons for all three scenes](https://jarvisyjw.github.io/GlassRecon/#reconstructions).
 
+## License
+
+The original GlassRecon reconstruction code is licensed under the GNU General Public License, version 2 only (`GPL-2.0-only`). [License text](LICENSE)
+
+The evaluation scripts `eval.py` and `alignment_functions.py` come from the original evaluation repository and are outside this license grant. [Evaluation code upstream](https://github.com/JMamie/GlassRecon)
+
+The code license excludes datasets and model weights. DA3-LARGE weights are licensed under CC BY-NC 4.0. The ScanNet++ inputs in the mapping demo and complete scene archive are subject to the ScanNet++ terms of use. [DA3-LARGE model card](https://huggingface.co/depth-anything/DA3-LARGE) · [ScanNet++ terms](https://scannetpp.mlsg.cit.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf)
+
 ## Citation
 
 If you use GlassRecon in your research, please cite this paper.
