@@ -99,18 +99,14 @@ The scoped uv setting handles the official nvblox wheel's filename/version misma
 
 Use the prepared apartment demo containing RGB, scale-aligned metric depth from DA3-LARGE, intrinsics, and supplied COLMAP camera poses. This entry point requires the nvblox environment above. Activate it with `source .venv-nvblox/bin/activate` (uv) or `conda activate glassrecon-nvblox` (Conda).
 
-The locally generated demo archive `outputs/mapping_demo.tar.gz` contains `mapping_demo/`. Extract it under `outputs/` to run the commands below. It has not been uploaded to a public download location. The [Sample demo](#sample-demo) shows the complete apartment point cloud. To prepare it from an existing ScanNet++ experiment, run:
+For collaborators who have signed the [ScanNet++ terms of use](https://scannetpp.mlsg.cit.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf), [download mapping_demo.tar.gz from Google Drive](https://drive.google.com/file/d/1nArawK8jakviM-ooHapZceBZi2jVkhqZ/view?usp=drive_link). Save the archive in the repository root and extract it:
 
 ```bash
-python examples/prepare_mapping_demo.py \
-  --dataset data/scannetpp/c0f5742640 \
-  --depth-cache outputs/scannetpp/c0f5742640/multiview_depths \
-  --output outputs/mapping_demo
+mkdir -p outputs
+tar -xzf mapping_demo.tar.gz -C outputs
 ```
 
-The demo contains only the 468 fused frames, with matching RGB, final metric depth, and poses. Its manifest records the expected frame count and processing configuration. It currently needs the local experiment outputs described in the [ScanNet++ guide](docs/scannetpp.md).
-
-Run direct nvblox mapping and display the accumulating map:
+The extracted `outputs/mapping_demo/` contains 468 frames with matching RGB, metric depth and camera poses. Run nvblox on these inputs to display the accumulating map:
 
 ```bash
 python -m glassrecon reconstruct \
@@ -124,6 +120,15 @@ python -m glassrecon reconstruct \
 ```
 
 Open [Viser](http://127.0.0.1:8090) to inspect mapping. Final outputs include `mesh.ply`, `pointcloud.ply`, `trajectory.txt`, `config.json`, and `summary.json`. The prepared metric-depth mode uses depths directly. Use a new output directory for each run.
+
+To prepare the same demo from your own [ScanNet++ experiment outputs](docs/scannetpp.md), run:
+
+```bash
+python examples/prepare_mapping_demo.py \
+  --dataset data/scannetpp/c0f5742640 \
+  --depth-cache outputs/scannetpp/c0f5742640/multiview_depths \
+  --output outputs/mapping_demo
+```
 
 ### Complete Pipeline
 
