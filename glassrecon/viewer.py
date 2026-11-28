@@ -1,6 +1,7 @@
 """Interactive Viser visualization of exported reconstruction results."""
 
 import json
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -262,12 +263,24 @@ class LiveReconstructionViewer:
         self.server = viser.ViserServer(
             host=host, port=port, label="GlassRecon · sequential fusion"
         )
+        panel = getattr(self.server.gui, "main_panel", None)
+        if panel is None:  # Earlier Viser 1.x versions use the theme API for docking.
+            self.server.gui.configure_theme(control_layout="fixed")
+        else:
+            panel.dock_right()
         self.max_points = max_points
+        self._lock = threading.RLock()
+        self._start = threading.Event()
+        self._stopped = threading.Event()
+        self._start_button = None
         self.positions = []
+        self._segments = []
+        self._completed_paths = []
         self.cloud = self.path = self.camera = None
-        self.center, self.radius, self.rotation = np.zeros(3), 1.0, np.eye(3)
         self.fov, self.aspect = float(np.deg2rad(60)), 4 / 3
         self.mode = ""
+        self._total = 0
+        self._reset_replay()
         self.server.scene.set_up_direction("-y")
         self.server.scene.world_axes.visible = True
         self.status = self.server.gui.add_markdown("Preparing sequential reconstruction…")
@@ -278,25 +291,31 @@ class LiveReconstructionViewer:
 
         @self.show_map.on_update
         def toggle_map(_):
-            if self.cloud is not None:
-                self.cloud.visible = self.show_map.value
+            with self._lock:
+                if self.cloud is not None:
+                    self.cloud.visible = self.show_map.value
 
         @self.show_path.on_update
         def toggle_path(_):
-            if self.path is not None:
-                self.path.visible = self.show_path.value
-            if self.camera is not None:
-                self.camera.visible = self.show_path.value
+            with self._lock:
+                for path in self._completed_paths:
+                    path.visible = self.show_path.value
+                if self.path is not None:
+                    self.path.visible = self.show_path.value
+                if self.camera is not None:
+                    self.camera.visible = self.show_path.value and self._previous is not None
 
         @self.home.on_click
         def frame_scene(event):
             if event.client is not None:
-                self.follow.value = False
-                self._set_overview(event.client.camera)
+                with self._lock:
+                    self.follow.value = False
+                    self._set_overview(event.client.camera)
 
         print(f"Live Viser: http://{self.server.get_host()}:{self.server.get_port()}", flush=True)
 
     def configure(self, intrinsics, total, pose_source, depth_source, tracking_depth="sensor"):
+        self._total = total
         self.fov = float(2 * np.arctan(intrinsics.height / (2 * intrinsics.fy)))
         self.aspect = intrinsics.width / intrinsics.height
         self.mode = f"Poses: **{pose_source}** · Fusion depth: **{depth_source}**"
@@ -306,6 +325,45 @@ class LiveReconstructionViewer:
             f"**Sequential reconstruction: {total} RGB-D frames**\n\n"
             f"{self.mode}\n\nLoading model and preparing fusion…"
         )
+
+    def wait_for_start(self):
+        """Gate the first frame until a connected viewer starts the replay."""
+        self.status.content = (
+            f"**Ready to replay {self._total} RGB-D frames**\n\n{self.mode}\n\n"
+            "Click **Start replay** to begin tracking and mapping."
+        )
+        self._wait_for_button("Start replay")
+
+    def wait_for_replay(self):
+        """Keep the finished scene interactive until any connected client starts a new run."""
+        self._wait_for_button("Replay")
+        with self._lock, self.server.atomic():
+            self._reset_replay()
+            self.show_map.value = self.show_path.value = True
+            self.follow.value = False
+            self._update_status()
+
+    def _wait_for_button(self, label):
+        with self._lock, self.server.atomic():
+            if self._stopped.is_set():
+                raise RuntimeError("Viewer stopped before replay started")
+            self._start.clear()
+            if self._start_button is None:
+                self._start_button = self.server.gui.add_button(label)
+
+                @self._start_button.on_click
+                def start(_):
+                    with self._lock:
+                        if not self._start_button.disabled:
+                            self._start_button.disabled = True
+                            self._start.set()
+            else:
+                self._start_button.label = label
+                self._start_button.disabled = False
+
+        self._start.wait()
+        if self._stopped.is_set():
+            raise RuntimeError("Viewer stopped before replay started")
 
     def _set_overview(self, camera):
         up, forward, right = -self.rotation[:, 1], self.rotation[:, 2], self.rotation[:, 0]
@@ -317,69 +375,178 @@ class LiveReconstructionViewer:
         camera.fov = float(np.deg2rad(60))
 
     def on_frame(self, progress, pose):
+        with self._lock, self.server.atomic():
+            self.status.content = (
+                f"**Sequential reconstruction**\n\n{self.mode}\n\n"
+                f"Processed: **{progress['processed']} / {progress['selected']}**\n\n"
+                f"Integrated: **{progress['integrated']}** · Skipped: **{progress['skipped']}**\n\n"
+                f"Timestamp: {progress['timestamp']:.6f}\n\nLast frame: {progress['frame_status']}"
+            )
+            if pose is not None:
+                self._draw_pose(pose)
+
+    def on_tracking(self, index, timestamp, state, pose, segment=0):
+        """Publish a 1-based input frame and its online camera-to-world pose, if tracked."""
+        with self._lock, self.server.atomic():
+            if index <= self._processed:
+                return
+            now = time.monotonic()
+            if self._started_at is None:
+                self._started_at = now
+                self._stage = "Waiting for depth"
+            elif now > self._started_at:
+                self._tracking_rate = f"{(index - 1) / (now - self._started_at):.1f} fps"
+            if self._segment is not None and segment != self._segment:
+                self._clear_submap()
+            if self._segment_started_at is None or segment != self._segment:
+                self._segment_started_at = now
+            self._segment = segment
+            self._processed, self._tracking_time, self._state = index, timestamp, state
+            if pose is None:
+                # Relocalization can resume in this map. Never draw a line across the gap.
+                self._missing += 1
+                self._previous = None
+                if self.camera is not None:
+                    self.camera.visible = False
+            else:
+                self._draw_pose(pose)
+            self._update_status()
+
+    def on_fusion(self, integrated, *, pending=0, timestamp=None, stage="Mapping", segment=None):
+        """Update mapping progress independently of tracking. Timestamps refer to fused frames."""
+        with self._lock:
+            if segment is not None and segment != self._segment:
+                return
+            if self._segment_started_at is not None and integrated > self._integrated:
+                elapsed = time.monotonic() - self._segment_started_at
+                if elapsed > 0:
+                    self._fusion_rate = f"{integrated / elapsed:.1f} fps"
+            self._integrated, self._pending, self._stage = integrated, pending, stage
+            if timestamp is not None:
+                self._fusion_time = timestamp
+            self._update_status()
+
+    def _update_status(self):
+        tracking_at = "—" if self._tracking_time is None else f"{self._tracking_time:.6f} s"
+        fused_at = "—" if self._fusion_time is None else f"{self._fusion_time:.6f} s"
         self.status.content = (
-            f"**Sequential reconstruction**\n\n{self.mode}\n\n"
-            f"Processed: **{progress['processed']} / {progress['selected']}**\n\n"
-            f"Integrated: **{progress['integrated']}** · Skipped: **{progress['skipped']}**\n\n"
-            f"Timestamp: {progress['timestamp']:.6f}\n\nLast frame: {progress['frame_status']}"
+            f"**RGB-D replay** · Submap **{self._segment if self._segment is not None else '—'}**"
+            f"\n\n{self.mode}\n\n"
+            f"Tracking: **{self._state}** · **{self._processed} / {self._total}** frames"
+            f" · {self._tracking_rate}\n\nLatest input: {tracking_at}"
+            f" · {self._missing} untracked\n\n"
+            f"Fusion: **{self._stage}** · **{self._integrated}** integrated"
+            f" · {self._fusion_rate}\n\nLatest fused frame: {fused_at} "
+            f"· {self._pending} pending in depth window"
         )
-        if pose is None:
-            return
+
+    def _clear_submap(self):
+        # Treat each tracking segment as a separate coordinate system.
+        for handle in (*self._completed_paths, self.path, self.camera, self.cloud):
+            if handle is not None:
+                handle.remove()
+        self.cloud = self.path = self.camera = self._previous = None
+        self.positions.clear()
+        self._segments.clear()
+        self._completed_paths.clear()
+        self.center, self.radius, self.rotation = np.zeros(3), 1.0, np.eye(3)
+        self._fusion_time = None
+        self._fusion_rate = "—"
+        self._integrated = self._pending = 0
+        self._stage = "Waiting for new submap"
+
+    def _reset_replay(self):
+        self._clear_submap()
+        self._processed = self._missing = 0
+        self._started_at = self._tracking_time = self._segment_started_at = None
+        self._tracking_rate = "—"
+        self._segment = None
+        self._state, self._stage = "Waiting", "Waiting for poses"
+
+    def _draw_pose(self, pose):
+        position = pose[:3, 3].copy()
         if not self.positions:
             self.rotation = pose[:3, :3].copy()
             self.server.scene.set_up_direction(tuple(-self.rotation[:, 1]))
-        self.positions.append(pose[:3, 3].copy())
+            self.center = position
+            self._set_overview(self.server.initial_camera)
+            if not self.follow.value:
+                for client in self.server.get_clients().values():
+                    self._set_overview(client.camera)
+        self.positions.append(position)
         xyzw = matrix_quaternion(pose[:3, :3])
         wxyz = xyzw[[3, 0, 1, 2]]
-        with self.server.atomic():
-            if self.camera is None:
-                self.camera = self.server.scene.add_camera_frustum(
-                    "/live/current_camera",
-                    fov=self.fov,
-                    aspect=self.aspect,
-                    scale=0.12,
-                    color=(255, 180, 50),
-                    wxyz=wxyz,
-                    position=pose[:3, 3],
+        if self.camera is None:
+            self.camera = self.server.scene.add_camera_frustum(
+                "/live/current_camera",
+                fov=self.fov,
+                aspect=self.aspect,
+                scale=0.12,
+                color=(255, 180, 50),
+                wxyz=wxyz,
+                position=position,
+                visible=self.show_path.value,
+            )
+        else:
+            self.camera.wxyz, self.camera.position = wxyz, position
+            self.camera.visible = self.show_path.value
+        if self._previous is not None:
+            # Keep historical chunks on the client; only retransmit the changing tail.
+            if len(self._segments) == 128:
+                self._completed_paths.append(self.path)
+                self.path = None
+                self._segments.clear()
+            self._segments.append((self._previous, position))
+            segments = np.asarray(self._segments, dtype=np.float32)
+            if self.path is None:
+                self.path = self.server.scene.add_line_segments(
+                    f"/live/trajectory/{len(self._completed_paths)}",
+                    points=segments,
+                    colors=(255, 180, 50),
+                    line_width=3,
                     visible=self.show_path.value,
                 )
             else:
-                self.camera.wxyz = wxyz
-                self.camera.position = pose[:3, 3]
-            if len(self.positions) > 1:
-                positions = np.asarray(self.positions, dtype=np.float32)
-                segments = np.stack([positions[:-1], positions[1:]], axis=1)
-                if self.path is None:
-                    self.path = self.server.scene.add_line_segments(
-                        "/live/trajectory",
-                        points=segments,
-                        colors=(255, 180, 50),
-                        line_width=3,
-                        visible=self.show_path.value,
-                    )
-                else:
-                    self.path.points = segments
-                    self.path.colors = np.broadcast_to(
-                        np.array([255, 180, 50], dtype=np.uint8), segments.shape
-                    ).copy()
-            if self.follow.value:
-                for client in self.server.get_clients().values():
-                    client.camera.up_direction = tuple(-pose[:3, 1])
-                    client.camera.position = tuple(pose[:3, 3])
-                    client.camera.look_at = tuple(pose[:3, 3] + pose[:3, 2] * self.radius)
-                    client.camera.fov = self.fov
+                self.path.points = segments
+                self.path.colors = np.broadcast_to((255, 180, 50), segments.shape).astype(np.uint8)
+        self._previous = position
+        if self.follow.value:
+            for client in self.server.get_clients().values():
+                client.camera.up_direction = tuple(-pose[:3, 1])
+                client.camera.position = tuple(position)
+                client.camera.look_at = tuple(position + pose[:3, 2] * self.radius)
+                client.camera.fov = self.fov
 
-    def update_map(self, points, colors):
+    def update_map(self, points, colors, *, segment=None):
         if not len(points):
             return
         lower, upper = points.min(axis=0), points.max(axis=0)
-        self.center = (lower + upper) / 2
-        self.radius = max(float(np.linalg.norm(upper - lower)) / 2, 0.1)
-        self._set_overview(self.server.initial_camera)
         if len(points) > self.max_points:
             indices = np.random.default_rng(0).choice(len(points), self.max_points, replace=False)
             points, colors = points[indices], colors[indices]
-        with self.server.atomic():
+        with self._lock, self.server.atomic():
+            if segment is not None and segment != self._segment:
+                return
+            initial = self.server.initial_camera
+            # Reframe clients still in the overview as the map expands. An orbit,
+            # pan or zoom gives that client control until they click Frame scene.
+            overview_clients = []
+            if not self.follow.value:
+                tolerance = max(self.radius * 0.005, 0.001)
+                for client in self.server.get_clients().values():
+                    if self.cloud is None or (
+                        np.allclose(client.camera.position, initial.position, atol=tolerance)
+                        and np.allclose(client.camera.look_at, initial.look_at, atol=tolerance)
+                    ):
+                        overview_clients.append(client)
+            if self.positions:
+                lower = np.minimum(lower, np.min(self.positions, axis=0))
+                upper = np.maximum(upper, np.max(self.positions, axis=0))
+            self.center = (lower + upper) / 2
+            self.radius = max(float(np.linalg.norm(upper - lower)) / 2, 0.1)
+            self._set_overview(initial)
+            for client in overview_clients:
+                self._set_overview(client.camera)
             if self.cloud is None:
                 self.cloud = self.server.scene.add_point_cloud(
                     "/live/map",
@@ -390,9 +557,6 @@ class LiveReconstructionViewer:
                     precision="float32",
                     visible=self.show_map.value,
                 )
-                if not self.follow.value:
-                    for client in self.server.get_clients().values():
-                        self._set_overview(client.camera)
             else:
                 self.cloud.points = points
                 self.cloud.colors = colors
@@ -416,6 +580,9 @@ class LiveReconstructionViewer:
             pass
 
     def stop(self):
+        with self._lock:
+            self._stopped.set()
+            self._start.set()
         self.server.stop()
 
 

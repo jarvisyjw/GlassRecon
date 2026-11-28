@@ -1,8 +1,8 @@
 # Reconstruct 11 ScanNet++ v2 scenes
 
-Use the registered iPhone RGB images, sensor depth and COLMAP camera poses to run DA3-LARGE, metric alignment and nvblox. Each row counts all iPhone frames with a released COLMAP pose. [Interactive scene comparisons](https://jarvisyjw.github.io/GlassRecon/#reconstructions)
+Each prepared iPhone scene contains registered RGB-D frames, camera intrinsics and a COLMAP reference trajectory. For mapping, use the supplied trajectory or estimate one from the raw RGB-D sequence with ORB-SLAM3. The table counts prepared frames. [Interactive scene comparisons](https://jarvisyjw.github.io/GlassRecon/#reconstructions)
 
-| Scene | ScanNet++ v2 ID | Frames in the complete pipeline |
+| Scene | ScanNet++ v2 ID | Prepared RGB-D frames |
 | --- | --- | ---: |
 | Lounge A | `08bd80ce2a` | 1,302 |
 | Bedroom | `0a76e06478` | 962 |
@@ -63,6 +63,39 @@ uv pip install --python "$NVBLOX_PYTHON" -e '.[scannetpp]'
   --scene-dir "$SCANNETPP_ROOT/data/$scene" --output "data/scannetpp/$scene"
 ```
 
+## ORB-SLAM3 setup
+
+For estimated poses, add a Python 3.12 tracking environment to the DA3 and nvblox environments from the README. Use either setup below from the repository root on Linux x86_64. [ORB-SLAM3](https://github.com/UZ-SLAMLab/ORB_SLAM3) · [pyorbslam3 wheel](https://pypi.org/project/pyorbslam3/0.1.3/)
+
+**uv**
+
+```bash
+uv venv --python 3.12 .venv-orb
+export ORB_PYTHON="$PWD/.venv-orb/bin/python"
+uv pip install --python "$ORB_PYTHON" -e '.[orbslam3]'
+```
+
+**Conda**
+
+```bash
+conda create -n glassrecon-orb python=3.12 pip -y
+conda activate glassrecon-orb
+export ORB_PYTHON="$CONDA_PREFIX/bin/python"
+"$ORB_PYTHON" -m pip install -e '.[orbslam3]'
+```
+
+Download the ORB feature vocabulary once. The frontend generates camera settings from the sequence calibration and timestamps.
+
+```bash
+mkdir -p data/orbslam3
+orb_revision=4452a3c4ab75b1cde34e5505a36ec3f9edcdc4c4
+curl -fL "https://raw.githubusercontent.com/UZ-SLAMLab/ORB_SLAM3/$orb_revision/Vocabulary/ORBvoc.txt.tar.gz" \
+  -o data/orbslam3/ORBvoc.txt.tar.gz
+echo 'ff2d0e82a69a8f4c5c002e3a0dff82a00e5872e1659fac1b996f41166b92693b  data/orbslam3/ORBvoc.txt.tar.gz' | sha256sum -c -
+tar -xzf data/orbslam3/ORBvoc.txt.tar.gz -C data/orbslam3 ORBvoc.txt
+export ORB_VOCABULARY="$PWD/data/orbslam3/ORBvoc.txt"
+```
+
 ## Run a scene
 
 Both input routes produce the same layout. Under `data/scannetpp/<scene-id>/`, `rgb/`, `depth/` and `masks/` share frame names. `rgb.txt` and `depth.txt` associate those files with timestamps. `intrinsics.json` describes the rectified camera, and `poses.txt` gives its camera-to-world trajectory.
@@ -78,3 +111,41 @@ sequence="data/scannetpp/$scene"
 ```
 
 Set `scene` to the ID of any prepared scene. The runner saves per-image DA3 depth in `predictions/`, the refined metric inputs in `reconstruction/metric_depths/`, and the colored point cloud and mesh in `reconstruction/{pointcloud,mesh}.ply`. The viewer opens at [localhost:8090](http://127.0.0.1:8090).
+
+## Export an ORB-SLAM3 trajectory
+
+To export just the trajectory, use the prepared Office B sequence or another scene ID from the table. To follow localization with DA3 depth prediction and nvblox fusion, use the complete pipeline. [End-to-end example](../README.md#orb-slam3-localization-and-nvblox-mapping)
+
+```bash
+scene=8a20d62ac0
+sequence="data/scannetpp/$scene"
+tracking="outputs/${scene}_poses"
+"$ORB_PYTHON" -m glassrecon localize \
+  --dataset "$sequence" --vocabulary "$ORB_VOCABULARY" \
+  --depth-units-per-meter 1000 --output "$tracking"
+```
+
+The frontend reads the registered RGB images, sensor depth in millimeters and `intrinsics.json`. After optimization, `poses.txt` contains the successfully tracked timestamps in the largest connected ORB map. In `summary.json`, `coverage` is the fraction of associated RGB-D frames retained in that trajectory (`localized_frames / associated`). Tracking loss can leave parts of a recording in separate maps. The end-to-end ORB command fuses frames with an exact timestamp match.
+
+You can reuse `poses.txt` as an external trajectory on the same sequence. For evaluation against the supplied COLMAP poses, align the two trajectories with a single rigid transform at matching timestamps and report coverage alongside the error.
+
+## Compare raw and GlassRecon fusion
+
+The complete ORB-SLAM3 pipeline produces the GlassRecon map in the README. After that run, fuse the measured sensor depth using the same trajectory to reproduce the raw-depth baseline. Both commands use 2 cm voxels and 8 cm truncation. For the conference room, set `scene=791a5c253d` in both commands.
+
+```bash
+scene=8a20d62ac0
+sequence="data/scannetpp/$scene"
+result="outputs/${scene}_orb"
+"$NVBLOX_PYTHON" -m glassrecon reconstruct \
+  --dataset "$sequence" --intrinsics "$sequence/intrinsics.json" \
+  --valid-mask-dir "$sequence/masks" --depth-source sensor --depth-units-per-meter 1000 \
+  --pose-source file --pose-file "$result/localization/poses.txt" --pose-max-difference 0 \
+  --backend nvblox --voxel-size 0.02 --sdf-trunc 0.08 --output "$result/raw_sensor"
+```
+
+![Colored Office B and conference-room point clouds with raw sensor fusion on the left and GlassRecon fusion on the right](../assets/orb-slam3-prepared-scenes.jpg)
+
+The prepared archive samples the original recordings at approximately 6 Hz. Each pair of point clouds shares a trajectory, viewpoint and scale. ORB-SLAM3 tracking and loop closure run asynchronously, so the final trajectory and frame count can vary between runs.
+
+For the three-scene figure, ORB-SLAM3 tracked the original iPhone stream at approximately 30 Hz. nvblox then fused 468 apartment, 555 conference-room and 295 office frames. Each raw-depth and GlassRecon-depth pair uses the same final ORB trajectory, fusion frames and 2 cm voxels. The figure reports surface F-score at 5 cm against the independent laser scan. [Three-scene reconstruction comparison](../assets/orb-slam3-nvblox.jpg)

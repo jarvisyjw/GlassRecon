@@ -45,6 +45,54 @@ def build_parser():
     predict.add_argument("--output", required=True, help="New or empty output directory")
     model_options(predict, cached=False)
 
+    loc = commands.add_parser("localize", help="Estimate camera poses using ORB-SLAM3 RGB-D")
+    loc.add_argument("--dataset", required=True, help="Directory with rgb.txt and depth.txt")
+    loc.add_argument("--vocabulary", required=True, help="ORB-SLAM3 text vocabulary (ORBvoc.txt)")
+    loc.add_argument("--intrinsics", help="Defaults to DATASET/intrinsics.json")
+    loc.add_argument("--depth-units-per-meter", type=positive_float, required=True)
+    loc.add_argument("--fps", type=positive_int, help="Nominal frame rate, inferred by default")
+    loc.add_argument(
+        "--output", required=True, help="New or empty directory for poses and settings"
+    )
+
+    live = commands.add_parser(
+        "live", help="Replay RGB-D with online ORB-SLAM3 and nvblox in Viser"
+    )
+    live.add_argument("--dataset", required=True, help="Registered RGB-D sequence directory")
+    live.add_argument("--intrinsics", help="Defaults to DATASET/intrinsics.json")
+    live.add_argument("--depth-units-per-meter", type=positive_float, required=True)
+    live.add_argument("--orb-python", required=True, help="Python with the ORB-SLAM3 extra")
+    live.add_argument("--orb-vocabulary", required=True, help="ORBvoc.txt")
+    live.add_argument(
+        "--fps", type=positive_int, help="Nominal ORB camera rate, inferred by default"
+    )
+    live.add_argument("--model-python", required=True, help="Python with DA3-LARGE installed")
+    live.add_argument("--model-id", default="depth-anything/DA3-LARGE")
+    live.add_argument("--output", required=True, help="New or empty directory for the online maps")
+    live.add_argument("--host", default="127.0.0.1")
+    live.add_argument("--port", type=positive_int, default=8091)
+    live.add_argument(
+        "--playback-rate", type=positive_float, default=1.0, help="1 = capture timing"
+    )
+    live.add_argument("--max-frames", type=positive_int, help="Replay only the first N frames")
+    live.add_argument(
+        "--alignment-iterations",
+        type=positive_int,
+        default=12,
+        help="Regional alignment trials per image tile (offline pipeline: 100)",
+    )
+    live.add_argument(
+        "--viewer-every",
+        type=positive_int,
+        default=3,
+        help="Publish the colored cloud every N fused frames",
+    )
+    live.add_argument("--viewer-max-points", type=positive_int, default=120_000)
+    live.add_argument(
+        "--autoplay", action="store_true", help="Start without the Viser Start button"
+    )
+    live.add_argument("--exit-after-run", action="store_true", help="Close Viser after export")
+
     recon = commands.add_parser("reconstruct", help="Reconstruct a TUM-format RGB-D sequence")
     recon.add_argument("--dataset", required=True, help="Directory with rgb.txt and depth.txt")
     recon.add_argument("--output", required=True, help="New or empty output directory")
@@ -93,9 +141,9 @@ def build_parser():
     )
     recon.add_argument(
         "--pose-max-difference",
-        type=positive_float,
+        type=float,
         default=0.05,
-        help="Maximum distance to each bracketing pose timestamp in seconds",
+        help="Maximum distance to each bracketing pose in seconds (0 uses exact timestamps)",
     )
     recon.add_argument(
         "--tracking-depth",
@@ -160,13 +208,15 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.command == "view" and args.port > 65535:
+    if args.command in {"view", "live"} and args.port > 65535:
         parser.error("--port must be between 1 and 65535")
     if args.command == "reconstruct":
         if args.depth_source == "metric" and args.depth_units_per_meter != 1:
             parser.error("Prepared metric depth requires --depth-units-per-meter 1")
         if args.depth_source == "metric" and args.pose_source != "file":
             parser.error("Prepared metric depth requires supplied poses")
+        if not math.isfinite(args.pose_max_difference) or args.pose_max_difference < 0:
+            parser.error("--pose-max-difference must be finite and nonnegative")
         if args.start < 0 or args.seed < 0:
             parser.error("--start and --seed must be nonnegative")
         if args.samples < 2 or args.min_depth >= args.max_depth:
@@ -181,6 +231,26 @@ def main(argv=None):
             parser.error("--keep-viewer requires --live-view")
     live_viewer = None
     try:
+        if args.command == "live":
+            from .live import serve_live
+            from .viewer import LiveReconstructionViewer
+
+            live_viewer = LiveReconstructionViewer(args.host, args.port, args.viewer_max_points)
+            serve_live(args, live_viewer)
+            return
+        if args.command == "localize":
+            from .orb_frontend import localize
+
+            result = localize(
+                args.dataset,
+                args.vocabulary,
+                args.depth_units_per_meter,
+                args.output,
+                intrinsics=args.intrinsics,
+                fps=args.fps,
+            )
+            print(json.dumps(result, indent=2), flush=True)
+            return
         if args.command == "view":
             from .viewer import serve
 
@@ -202,6 +272,9 @@ def main(argv=None):
         if live_viewer is not None and args.keep_viewer:
             print("Reconstruction complete. Viser remains available; Ctrl+C to close.", flush=True)
             live_viewer.wait()
+    except KeyboardInterrupt:
+        if args.command != "live":
+            raise
     except (ValueError, OSError, ImportError, RuntimeError) as exc:
         parser.exit(1, f"glassrecon: {exc}\n")
     finally:

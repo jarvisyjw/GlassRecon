@@ -193,6 +193,8 @@ class PoseTrajectory:
     def at(self, timestamp, max_difference=0.05):
         """Return c2w or None; never extrapolate or interpolate across a large gap."""
         right = int(np.searchsorted(self.times, timestamp))
+        if max_difference == 0 and (right == len(self.times) or self.times[right] != timestamp):
+            return None
         if right < len(self.times) and abs(self.times[right] - timestamp) < 1e-9:
             translation, q = self.rows[right, 1:4], self.rows[right, 4:]
         elif right == 0 or right == len(self.times):

@@ -88,7 +88,8 @@ def test_moving_camera_exact_plane_remains_metric():
         assert np.abs(node["depth"] - expected[node["key"]]).mean() < 0.002
 
 
-def test_multiview_cli_flushes_every_selected_frame_once(tmp_path):
+@pytest.mark.parametrize("missing_pose", [False, True])
+def test_multiview_cli_flushes_every_selected_frame_once(tmp_path, missing_pose):
     import json
 
     pytest.importorskip("open3d")
@@ -98,6 +99,11 @@ def test_multiview_cli_flushes_every_selected_frame_once(tmp_path):
     from glassrecon.cli import main
 
     dataset = make_sequence(tmp_path / "sequence", frame_count=7, corrupt_sensor=False)
+    pose_path = dataset / "groundtruth.txt"
+    if missing_pose:
+        # One dropout at 33 Hz is close enough for the default external-pose interpolation.
+        poses = np.loadtxt(pose_path)
+        np.savetxt(pose_path, np.delete(poses, 2, axis=0), fmt="%.9f")
     masks = dataset / "masks"
     masks.mkdir()
     for frame in (dataset / "rgb").glob("*.png"):
@@ -133,22 +139,29 @@ def test_multiview_cli_flushes_every_selected_frame_once(tmp_path):
             "3",
             "--save-depths",
         ]
+        + (["--pose-max-difference", "0"] if missing_pose else [])
     )
     summary = json.loads((output / "summary.json").read_text())
-    assert summary["integrated"] == 7 and summary["skipped"] == 0
+    expected = 7 - missing_pose
+    assert summary["integrated"] == expected and summary["skipped"] == int(missing_pose)
     trajectory = np.loadtxt(output / "trajectory.txt")
-    assert trajectory.shape == (7, 8) and np.all(np.diff(trajectory[:, 0]) > 0)
+    assert trajectory.shape == (expected, 8) and np.all(np.diff(trajectory[:, 0]) > 0)
     depths = list((output / "metric_depths").glob("*.npy"))
-    assert len(depths) == 7
+    assert len(depths) == expected
     for path in depths:
         depth = np.load(path)
         assert not np.any(depth[:, :8])
         assert np.any(depth[:, 8:] > 0)
     rows = [json.loads(line) for line in (output / "frames.jsonl").read_text().splitlines()]
     emitted = [r["emitted_frame"] for r in rows if r["status"] == "integrated"]
-    assert len(emitted) == len(set(emitted)) == 7
-    assert sum(r["status"] == "buffered" for r in rows) == 2
-    assert json.loads((output / "progress.json").read_text())["integrated"] == 7
+    assert len(emitted) == len(set(emitted)) == expected
+    if missing_pose:
+        assert "1.060000" not in emitted
+        after_gap = next(r for r in rows if r.get("emitted_frame") == "1.090000")
+        assert after_gap["multiview"]["boundary_frame"] is None
+    else:
+        assert sum(r["status"] == "buffered" for r in rows) == 2
+    assert json.loads((output / "progress.json").read_text())["integrated"] == expected
 
 
 def test_zero_temporal_weight_matches_sensor_anchor_ablation():

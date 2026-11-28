@@ -11,5 +11,5 @@ The mapping requirements install the nvblox v0.0.10 wheel, a compatible PyTorch,
 ## Inputs and outputs
 
 - nvblox consumes RGB, optical-axis depth in meters and a camera-to-world pose for every frame. The reconstruction command converts stored depth to meters. Use `--depth-units-per-meter 1` for the [prepared mapping demo](../README.md#quick-start) and `1000` for the [ScanNet++ sensor PNGs](scannetpp.md).
-- Supply camera poses via `--poses` in the complete pipeline. To estimate them from RGB and sensor depth, omit that option. In both modes nvblox does the fusion.
+- In the complete pipeline, pass `--poses` to use an existing trajectory, or pass `--orb-python` and `--orb-vocabulary` to estimate poses from raw RGB-D with ORB-SLAM3. nvblox fuses GlassRecon depth at the resulting poses. [ORB-SLAM3 example](../README.md#orb-slam3-localization-and-nvblox-mapping)
 - The final map contains `mesh.ply` from the nvblox color mesh, `pointcloud.ply` from its colored vertices, and `trajectory.txt` with the integrated camera poses. Open a finished map with the viewer command in the [Quick Start](../README.md#quick-start).

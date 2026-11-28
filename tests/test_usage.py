@@ -82,3 +82,49 @@ def test_full_pipeline_stage_contract(tmp_path, provided_pose):
         with pytest.raises(subprocess.CalledProcessError):
             run_full_pipeline.main()
         assert run.call_count == 1
+
+
+def test_orb_pipeline_passes_raw_rgbd_to_tracker_and_exact_poses_to_mapping(tmp_path):
+    dataset = tmp_path / "scene"
+    (dataset / "rgb").mkdir(parents=True)
+    for name in ("rgb.txt", "depth.txt", "intrinsics.json"):
+        (dataset / name).touch()
+    vocabulary = tmp_path / "ORBvoc.txt"
+    vocabulary.touch()
+    output = tmp_path / "run"
+    argv = [
+        "runner",
+        "--dataset",
+        str(dataset),
+        "--model-python",
+        "da3-python",
+        "--output",
+        str(output),
+        "--depth-units-per-meter",
+        "1000",
+        "--orb-python",
+        "orb-python",
+        "--orb-vocabulary",
+        str(vocabulary),
+    ]
+    with patch("sys.argv", argv), patch.object(subprocess, "run") as run:
+        run_full_pipeline.main()
+    tracking, predict, mapping = [call.args[0] for call in run.call_args_list]
+    assert tracking[:4] == ["orb-python", "-m", "glassrecon", "localize"]
+    assert tracking[tracking.index("--dataset") + 1] == str(dataset)
+    assert tracking[tracking.index("--vocabulary") + 1] == str(vocabulary)
+    assert tracking[tracking.index("--depth-units-per-meter") + 1] == "1000.0"
+    assert tracking[tracking.index("--output") + 1] == str(output / "localization")
+    assert predict[0] == "da3-python"
+    assert mapping[mapping.index("--pose-file") + 1] == str(output / "localization/poses.txt")
+    assert mapping[mapping.index("--pose-max-difference") + 1] == "0"
+    assert mapping[mapping.index("--backend") + 1] == "nvblox"
+    assert mapping[mapping.index("--fusion-policy") + 1] == "multiview"
+    for bad in (argv[:-2], argv + ["--poses", str(dataset / "poses.txt")]):
+        with (
+            patch("sys.argv", bad),
+            patch.object(subprocess, "run") as run,
+            pytest.raises(SystemExit),
+        ):
+            run_full_pipeline.main()
+        run.assert_not_called()

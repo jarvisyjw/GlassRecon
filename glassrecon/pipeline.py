@@ -169,6 +169,28 @@ def reconstruct(args, observer=None):
                 emitted_timestamp=timestamp,
             )
 
+        def flush_window():
+            for node in window.flush():
+                record = commit(
+                    node["rgb"], node["depth"], node["pose"], node["key"], node["timestamp"]
+                )
+                record.update(
+                    frame=node["key"],
+                    timestamp=node["timestamp"],
+                    phase="window_flush",
+                    multiview=node["diagnostics"],
+                )
+                log.write(json.dumps(record, allow_nan=False) + "\n")
+                log.flush()
+                progress.update(
+                    integrated=mapper.integrated,
+                    timestamp=node["timestamp"],
+                    frame_status="integrated",
+                )
+                (output / "progress.json").write_text(json.dumps(progress, indent=2) + "\n")
+                if observer is not None:
+                    observer.on_frame(progress, node["pose"])
+
         for index, frame in enumerate(frames):
             record = {
                 "frame": frame.key,
@@ -179,6 +201,10 @@ def reconstruct(args, observer=None):
             pose = trajectory.at(frame.timestamp, args.pose_max_difference) if trajectory else None
             try:
                 if trajectory is not None and pose is None:
+                    # An exactly matched track can have gaps after loss or a map reset.
+                    if window is not None and args.pose_max_difference == 0:
+                        flush_window()
+                        window = SlidingWindowRecovery(intrinsics, window.config)
                     # Unmatched trajectory endpoints/gaps are normal association exclusions.
                     record.update(status="skipped", reason="No pose within interpolation tolerance")
                     skipped += 1
@@ -271,26 +297,7 @@ def reconstruct(args, observer=None):
                     flush=True,
                 )
         if window is not None:
-            for node in window.flush():
-                record = commit(
-                    node["rgb"], node["depth"], node["pose"], node["key"], node["timestamp"]
-                )
-                record.update(
-                    frame=node["key"],
-                    timestamp=node["timestamp"],
-                    phase="window_flush",
-                    multiview=node["diagnostics"],
-                )
-                log.write(json.dumps(record, allow_nan=False) + "\n")
-                log.flush()
-                progress.update(
-                    integrated=mapper.integrated,
-                    timestamp=node["timestamp"],
-                    frame_status="integrated",
-                )
-                (output / "progress.json").write_text(json.dumps(progress, indent=2) + "\n")
-                if observer is not None:
-                    observer.on_frame(progress, node["pose"])
+            flush_window()
     geometry = mapper.export(output)
     positions = np.asarray(camera_positions)
     path_length = float(np.linalg.norm(np.diff(positions, axis=0), axis=1).sum())
